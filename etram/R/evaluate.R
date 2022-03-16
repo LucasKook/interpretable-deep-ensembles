@@ -176,6 +176,7 @@ get_indiv_metrics <- function(lys_cdf, y_true,
                             do.call("rbind", lapply(lys_cdf, get_rps, y_true = y_true)),
                             do.call("rbind", lapply(lys_cdf, function(x) get_cal(cdf = x, y_true = y_true)$cint)),
                             do.call("rbind", lapply(lys_cdf, function(x) get_cal(cdf = x, y_true = y_true)$cslope)),
+                            do.call("rbind", lapply(lys_cdf, function(x) get_brier(cdf = x, y_true = y_true)$cslope)),
                             do.call("rbind", lapply(lys_cdf, get_auc, y_true = y_true, cutoff = cutoff)),
                             do.call("rbind", lapply(lys_cdf, function(x) 1 - get_auc(cdf = x, y_true = y_true, cutoff = cutoff))),
                             do.call("rbind", lapply(lys_cdf, get_qwk, y_true = y_true, p = p))
