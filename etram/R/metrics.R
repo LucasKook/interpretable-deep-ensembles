@@ -1,0 +1,418 @@
+#' Calculate accuracy
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_acc(cdf = cdf, y_true = y_true)
+#' @export
+get_acc <- function(cdf, y_true) {
+  cdf <- as.matrix(cdf)
+  pdf <- t(apply(cbind(0, cdf), 1, diff))
+  predicted <- apply(pdf, 1,  which.max)
+  target <- apply(y_true, 1, which.max)
+  ret <- mean(predicted == target)
+  return(ret)
+}
+
+#' Calculate mean accuracy of ensemble members
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_acc(lys_cdf = lys_cdf, y_true = y_true)
+#' @export
+get_avg_acc <- function(lys_cdf, y_true) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  mean(unlist(lapply(lys_cdf, get_acc, y_true = y_true)))
+}
+
+#' Calculate ranked probability score
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_rps(cdf = cdf, y_true = y_true)
+#' @export
+get_rps <- function(cdf, y_true) {
+  cdf <- as.matrix(cdf)
+  K <- ncol(y_true)
+  cdf_true <- t(apply(y_true, 1, cumsum))
+  briers <- 1/(K - 1) * apply((cdf_true - cdf)^2, 1, sum)
+  ret <- mean(briers)
+  return(ret)
+}
+
+#' Calculate mean ranked probability score of ensemble members
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_rps(lys_cdf = lys_cdf, y_true = y_true)
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @export
+get_avg_rps <- function(lys_cdf, y_true) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  mean(unlist(lapply(lys_cdf, get_rps, y_true = y_true)))
+}
+
+#' Calculate negative log-likelihood
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_nll(cdf = cdf, y_true = y_true)
+#' @export
+get_nll <- function(cdf, y_true) {
+  cdf <- as.matrix(cdf)
+  pdf <- t(apply(cbind(0, cdf), 1, diff))
+  li <- apply(y_true * pdf, 1, sum)
+  lli <- log(li)
+  nll <- -mean(lli)
+  return(nll)
+}
+
+#' Calculate mean negative log-likelihood of ensemble members
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_nll(lys_cdf = lys_cdf, y_true = y_true)
+#' @export
+get_avg_nll <- function(lys_cdf, y_true) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  mean(unlist(lapply(lys_cdf, get_nll, y_true = y_true)))
+}
+
+#' Calculate binary negative log-likelihood
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_binnll(cdf = cdf, y_true = y_true, cutoff = 2)
+#' @export
+get_binnll <- function(cdf, y_true, cutoff = 3) {
+  cdf <- as.matrix(cdf)
+  pdfbin <- cdf[, cutoff]
+  ytruebin <- apply(y_true[, 1L:cutoff, drop = FALSE], 1, sum)
+  binli <- ytruebin * pdfbin + (1 - ytruebin) * (1 - pdfbin)
+  binnll <- -mean(log(binli))
+  return(binnll)
+}
+
+#' Calculate mean binary negative log-likelihood of ensemble members
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_binnll(lys_cdf = lys_cdf, y_true = y_true, cutoff = 2)
+#' @export
+get_avg_binnll <- function(lys_cdf, y_true, cutoff = 3) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  mean(unlist(lapply(lys_cdf, get_binnll, y_true = y_true, cutoff = cutoff)))
+}
+
+#' Calculate area under the ROC curve
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_auc(cdf = cdf, y_true = y_true, cutoff = 2)
+#' @export
+get_auc <- function(cdf, y_true, cutoff = 3) {
+  cdf <- as.matrix(cdf)
+  pdfbin <- cdf[, cutoff]
+  ytruebin <- apply(y_true[, 1L:cutoff, drop = FALSE], 1, sum)
+  auc <- pROC::auc(ytruebin, pdfbin, levels = c(0, 1), direction = "<")
+  return(auc)
+}
+
+#' Calculate mean area under the ROC curve of ensemble members
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_auc(lys_cdf = lys_cdf, y_true = y_true, cutoff = 2)
+#' @export
+get_avg_auc <- function(lys_cdf, y_true, cutoff = 3) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  mean(unlist(lapply(lys_cdf, get_auc, y_true = y_true, cutoff = cutoff)))
+}
+
+#' Calculate quadratic weighted kappa
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_qwk(cdf = cdf, y_true = y_true, p = 2)
+#' @export
+get_qwk <- function(cdf, y_true, p = 2) {
+  cdf <- as.matrix(cdf)
+  K <- ncol(y_true)
+  weights <- ontram:::weight_scheme(K, p)
+  pdf <- t(apply(cbind(0, cdf), 1, diff))
+  yt <- factor(apply(y_true, 1, which.max), levels = 1:K) # otherwise unused levels will be skipped in table()
+  pt <- factor(apply(pdf, 1, which.max), levels = 1:K)
+  cmat <- table(yt, pt)
+  observed_margin <- apply(cmat, 1, sum)
+  predicted_margin <- apply(cmat, 2, sum)
+  expected_cmat <- (matrix(observed_margin, ncol = 1) %*% predicted_margin) / nrow(y_true)
+
+  qwk <- (sum(weights * cmat) - sum(weights * expected_cmat)) /
+    (1 - sum(weights * expected_cmat))
+  return(qwk)
+}
+
+#' Calculate mean quadratic weighted kappa of ensemble members
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_qwk(lys_cdf = lys_cdf, y_true = y_true, p = 2)
+#' @export
+get_avg_qwk <- function(lys_cdf, y_true, p = 2) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  mean(unlist(lapply(lys_cdf, get_qwk, y_true = y_true, p = p)))
+}
+
+#' Calculate calibration intercept and slope per class
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_cal_perclass(cdf = cdf, y_true = y_true)
+#' @export
+get_cal_perclass <- function(cdf, y_true) {
+  cdf <- as.matrix(cdf)
+  K <- ncol(y_true)
+  pdf <- t(apply(cbind(0, cdf), 1, diff))
+  pdf[pdf == 0] <- 1e-20
+  logits <- apply(pdf, 2, qlogis)
+  cint <- numeric(K)
+  cslope <- numeric(K)
+  for (cl in seq_len(K)) {
+    df <- as.data.frame(cbind(y = y_true[, cl], logits = logits[, cl]))
+    m_cint <- glm(I(y == 1) ~ offset(logits), data = df, family = "binomial")
+    cint[cl] <- coef(m_cint)[1]
+    m_cslope <- glm(I(y == 1) ~ logits, data = df, family = "binomial")
+    cslope[cl] <- coef(m_cslope)[2]
+  }
+  ret <- list(cint = cint,
+              cslope = cslope)
+  return(ret)
+}
+
+#' Calculate mean calibration intercept and slope across classes
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_cal(cdf = cdf, y_true = y_true)
+#' @export
+get_cal <- function(cdf, y_true) {
+  cdf <- as.matrix(cdf)
+  cint <- get_cal_perclass(cdf, y_true)$cint
+  cslope <- get_cal_perclass(cdf, y_true)$cslope
+  ret <- list(cint = mean(cint),
+              cslope = mean(cslope))
+  return(ret)
+}
+
+#' Calculate mean calibration intercept and slope across classes and ensemble members
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_cal(lys_cdf = lys_cdf, y_true = y_true)
+#' @export
+get_avg_cal <- function(lys_cdf, y_true) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  cint <- sapply(lapply(lys_cdf, get_cal, y_true = y_true), "[[", 1)
+  cslope <- sapply(lapply(lys_cdf, get_cal, y_true = y_true), "[[", 2)
+  ret <- list(cint = mean(cint),
+              cslope = mean(cslope))
+  return(ret)
+}
+
+#' Calculate brier score per class
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_brier_perclass(cdf = cdf, y_true = y_true)
+#' @export
+get_brier_perclass <- function(cdf, y_true) {
+  cdf <- as.matrix(cdf)
+  K <- ncol(y_true)
+  pdf <- t(apply(cbind(0, cdf), 1, diff))
+  briers <- numeric(K)
+  for (cl in seq_len(K)) {
+    y <- y_true[, cl]
+    pred <- pdf[, cl]
+    briers[cl] <- mean((y - pred)^2)
+  }
+  return(briers)
+}
+
+#' Calculate mean brier score across classes
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.3, 0.4, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_brier(cdf = cdf, y_true = y_true)
+#' @export
+get_brier <- function(cdf, y_true) {
+  cdf <- as.matrix(cdf)
+  briers <- get_brier_perclass(cdf, y_true)
+  ret <- mean(briers)
+  return(ret)
+}
+
+#' Calculate mean brier score across classes and ensemble members
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_brier(lys_cdf = lys_cdf, y_true = y_true)
+#' @export
+get_avg_brier <- function(lys_cdf, y_true) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  mean(unlist(lapply(lys_cdf, get_brier, y_true = y_true)))
+}
+
