@@ -5,7 +5,7 @@ Version: 0.0-1
 Authors@R: c(person("Lucas", "Kook", role = c("cre", "aut"), email = "lucasheinrich.kook@gmail.com"),
     person("Andrea", "Goetschi", role = "aut"))
 Description: Transformation ensembles
-Depends: R (>= 4.0), ontram, tram, keras
+Depends: R (>= 3.6.0), ontram, tram, keras
 License: GPL-3
 Encoding: UTF-8
 Suggests: 
