@@ -2,7 +2,9 @@ Package: etram
 Type: Package
 Title: Transformation ensembles
 Version: 0.0-1
-Authors@R: c(person("Lucas", "Kook", role = c("cre", "aut"), email = "lucasheinrich.kook@gmail.com"),
+Authors@R: c(
+    person("Lucas", "Kook", role = c("cre", "aut"), 
+           email = "lucasheinrich.kook@gmail.com"),
     person("Andrea", "Goetschi", role = "aut"))
 Description: Transformation ensembles
 Depends: R (>= 3.6.0), ontram, tram, keras
