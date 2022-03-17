@@ -219,7 +219,7 @@ get_avg_auc <- function(lys_cdf, y_true, cutoff = 3) {
 
 #' Calculate quadratic weighted kappa
 #' @examples
-#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#' cdf <- data.frame(matrix(c(0.2, 0.3, 1,
 #'                            0.5, 0.7, 1,
 #'                            0.3, 0.4, 1),
 #'                          nrow = 3, byrow = T))
@@ -239,11 +239,13 @@ get_qwk <- function(cdf, y_true, p = 2) {
   cmat <- table(yt, pt)
   observed_margin <- apply(cmat, 1, sum)
   predicted_margin <- apply(cmat, 2, sum)
-  expected_cmat <- (matrix(observed_margin, ncol = 1) %*% predicted_margin) / nrow(y_true)
+  expected_cmat <- (matrix(observed_margin, ncol = 1) %*%
+                      predicted_margin) / nrow(y_true)
 
-  qwk <- (sum(weights * cmat) - sum(weights * expected_cmat)) /
-    (1 - sum(weights * expected_cmat))
-  return(qwk)
+  # (sum(weights * cmat) - sum(weights * expected_cmat)) /
+  #   (1 - sum(weights * expected_cmat)) # different parameterization requires 1 - weights
+
+  1 - sum(weights * cmat) / sum(weights * expected_cmat)
 }
 
 #' Calculate mean quadratic weighted kappa of ensemble members

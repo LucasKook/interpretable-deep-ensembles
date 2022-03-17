@@ -10,7 +10,7 @@ get_qwk(cdf, y_true, p = 2)
 Calculate quadratic weighted kappa
 }
 \examples{
-cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+cdf <- data.frame(matrix(c(0.2, 0.3, 1,
                            0.5, 0.7, 1,
                            0.3, 0.4, 1),
                          nrow = 3, byrow = T))
