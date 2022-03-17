@@ -7,8 +7,8 @@
 get_indiv_metrics_allspl(
   lys_cdf_all,
   y_true_all,
-  metrics = c("all", "acc", "eacc", "nll", "binnll", "rps", "cint", "cslope", "brier",
-    "auc", "eauc", "qwk"),
+  metrics = c("all", "acc", "binacc", "eacc", "ebinacc", "nll", "binnll", "rps",
+    "cint", "cslope", "brier", "auc", "eauc", "qwk", "eqwk"),
   cutoff = 3,
   p = 2
 )

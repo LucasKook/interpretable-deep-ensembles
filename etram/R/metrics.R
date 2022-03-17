@@ -42,6 +42,50 @@ get_avg_acc <- function(lys_cdf, y_true) {
   mean(unlist(lapply(lys_cdf, get_acc, y_true = y_true)))
 }
 
+#' Calculate binary accuracy
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.1, 0.8, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_binacc(cdf = cdf, y_true = y_true, cutoff = 2)
+#' @export
+get_binacc <- function(cdf, y_true, cutoff = 3) {
+  cdf <- as.matrix(cdf)
+  pdfbin <- cdf[, cutoff]
+  predicted <- ifelse(pdfbin >= 0.5, 1, 0)
+  target <- apply(y_true[, 1L:cutoff, drop = FALSE], 1, sum)
+  ret <- mean(predicted == target)
+  return(ret)
+}
+
+#' Calculate mean binary accuracy of ensemble members
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                             0.5, 0.7, 1,
+#'                             0.3, 0.4, 1),
+#'                           nrow = 3, byrow = T))
+#' cdf2 <- data.frame(matrix(c(0.1, 0.8, 1,
+#'                             0.3, 0.4, 1,
+#'                             0.2, 0.6, 1),
+#'                           nrow = 3, byrow = T))
+#' lys_cdf <- list(cdf1, cdf2)
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               0, 1, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_avg_binacc(lys_cdf = lys_cdf, y_true = y_true, cutoff = 2)
+#' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
+#' @export
+get_avg_binacc <- function(lys_cdf, y_true, cutoff = 3) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  mean(unlist(lapply(lys_cdf, get_binacc, y_true = y_true, cutoff = cutoff)))
+}
+
 #' Calculate ranked probability score
 #' @examples
 #' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
@@ -190,8 +234,10 @@ get_auc <- function(cdf, y_true, cutoff = 3) {
   cdf <- as.matrix(cdf)
   pdfbin <- cdf[, cutoff]
   ytruebin <- apply(y_true[, 1L:cutoff, drop = FALSE], 1, sum)
-  auc <- pROC::auc(ytruebin, pdfbin, levels = c(0, 1), direction = "<")
-  return(auc)
+  auc1 <- pROC::auc(ytruebin, pdfbin, levels = c(0, 1), direction = "<")
+  auc2 <- pROC::auc(ytruebin, pdfbin, levels = c(1, 0), direction = "<")
+  ret <- max(auc1, auc2)
+  return(ret)
 }
 
 #' Calculate mean area under the ROC curve of ensemble members
@@ -351,7 +397,7 @@ get_avg_cal <- function(lys_cdf, y_true) {
   return(ret)
 }
 
-#' Calculate brier score per class
+#' Calculate binary brier score
 #' @examples
 #' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
 #'                            0.5, 0.7, 1,
@@ -361,41 +407,17 @@ get_avg_cal <- function(lys_cdf, y_true) {
 #'                               1, 0, 0,
 #'                               0, 0, 1),
 #'                             nrow = 3, byrow = T))
-#' get_brier_perclass(cdf = cdf, y_true = y_true)
+#' get_brier(cdf = cdf, y_true = y_true, cutoff = 2)
 #' @export
-get_brier_perclass <- function(cdf, y_true) {
+get_brier <- function(cdf, y_true, cutoff = 3) {
   cdf <- as.matrix(cdf)
-  K <- ncol(y_true)
-  pdf <- t(apply(cbind(0, cdf), 1, diff))
-  briers <- numeric(K)
-  for (cl in seq_len(K)) {
-    y <- y_true[, cl]
-    pred <- pdf[, cl]
-    briers[cl] <- mean((y - pred)^2)
-  }
-  return(briers)
-}
-
-#' Calculate mean brier score across classes
-#' @examples
-#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
-#'                            0.5, 0.7, 1,
-#'                            0.3, 0.4, 1),
-#'                          nrow = 3, byrow = T))
-#' y_true <- data.frame(matrix(c(0, 1, 0,
-#'                               1, 0, 0,
-#'                               0, 0, 1),
-#'                             nrow = 3, byrow = T))
-#' get_brier(cdf = cdf, y_true = y_true)
-#' @export
-get_brier <- function(cdf, y_true) {
-  cdf <- as.matrix(cdf)
-  briers <- get_brier_perclass(cdf, y_true)
-  ret <- mean(briers)
+  pdfbin <- cdf[, cutoff]
+  ytruebin <- apply(y_true[, 1L:cutoff, drop = FALSE], 1, sum)
+  ret <- mean((ytruebin - pdfbin)^2)
   return(ret)
 }
 
-#' Calculate mean brier score across classes and ensemble members
+#' Calculate mean brier score across ensemble members
 #' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
 #' @examples
 #' cdf1 <- data.frame(matrix(c(0.2, 0.6, 1,
@@ -413,8 +435,8 @@ get_brier <- function(cdf, y_true) {
 #'                             nrow = 3, byrow = T))
 #' get_avg_brier(lys_cdf = lys_cdf, y_true = y_true)
 #' @export
-get_avg_brier <- function(lys_cdf, y_true) {
+get_avg_brier <- function(lys_cdf, y_true, cutoff = 3) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_brier, y_true = y_true)))
+  mean(unlist(lapply(lys_cdf, get_brier, y_true = y_true, cutoff = cutoff)))
 }
 

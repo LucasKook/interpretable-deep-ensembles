@@ -7,11 +7,11 @@
 #' @param facet_labs labels used for facets.
 #' @export
 plot_metrics <- function(met, indiv_met = NULL,
-                         metrics = c("all", "acc", "eacc", "nll", "binnll", "rps", "cint",
-                                     "cslope", "brier", "auc", "eauc", "qwk"),
+                         metrics = c("all", "acc", "binacc", "eacc", "ebinacc", "nll", "binnll", "rps", "cint",
+                                     "cslope", "brier", "auc", "eauc", "qwk", "eqwk"),
                          facet_labs = NULL, ncol = NULL, nrow = NULL, ...) {
-  all_metrics <- c("nll", "rps", "acc", "eacc", "cint",
-                   "cslope", "brier", "binnll", "auc", "eauc", "qwk")
+  all_metrics <- c("nll", "rps", "acc", "binacc", "eacc", "ebinacc", "cint",
+                   "cslope", "brier", "binnll", "auc", "eauc", "qwk", "eqwk")
   met$metric <- factor(met$metric, levels = all_metrics[all_metrics %in% metrics])
   if (!is.null(indiv_met)) {
     indiv_met$metric <- factor(indiv_met$metric, levels = all_metrics[all_metrics %in% metrics])

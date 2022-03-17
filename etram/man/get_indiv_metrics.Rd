@@ -7,8 +7,8 @@
 get_indiv_metrics(
   lys_cdf,
   y_true,
-  metrics = c("all", "acc", "eacc", "nll", "binnll", "rps", "cint", "cslope", "brier",
-    "auc", "eauc", "qwk"),
+  metrics = c("all", "acc", "binacc", "eacc", "ebinacc", "nll", "binnll", "rps",
+    "cint", "cslope", "brier", "auc", "eauc", "qwk", "eqwk"),
   cutoff = 3,
   p = 2
 )

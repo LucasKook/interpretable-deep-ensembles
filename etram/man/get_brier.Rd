@@ -2,12 +2,12 @@
 % Please edit documentation in R/metrics.R
 \name{get_brier}
 \alias{get_brier}
-\title{Calculate mean brier score across classes}
+\title{Calculate binary brier score}
 \usage{
-get_brier(cdf, y_true)
+get_brier(cdf, y_true, cutoff = 3)
 }
 \description{
-Calculate mean brier score across classes
+Calculate binary brier score
 }
 \examples{
 cdf <- data.frame(matrix(c(0.2, 0.6, 1,
@@ -18,5 +18,5 @@ y_true <- data.frame(matrix(c(0, 1, 0,
                               1, 0, 0,
                               0, 0, 1),
                             nrow = 3, byrow = T))
-get_brier(cdf = cdf, y_true = y_true)
+get_brier(cdf = cdf, y_true = y_true, cutoff = 2)
 }

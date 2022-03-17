@@ -7,8 +7,8 @@
 plot_metrics(
   met,
   indiv_met = NULL,
-  metrics = c("all", "acc", "eacc", "nll", "binnll", "rps", "cint", "cslope", "brier",
-    "auc", "eauc", "qwk"),
+  metrics = c("all", "acc", "binacc", "eacc", "ebinacc", "nll", "binnll", "rps",
+    "cint", "cslope", "brier", "auc", "eauc", "qwk", "eqwk"),
   facet_labs = NULL,
   ncol = NULL,
   nrow = NULL,
