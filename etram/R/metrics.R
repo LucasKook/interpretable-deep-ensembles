@@ -345,7 +345,7 @@ get_cal_perclass <- function(cdf, y_true) {
     cslope[cl] <- coef(m_cslope)[2]
   }
   ret <- list(cint = cint,
-              cslope = log(cslope)) # slope on log scale
+              cslope = cslope)
   return(ret)
 }
 
@@ -366,7 +366,7 @@ get_cal <- function(cdf, y_true) {
   cint <- get_cal_perclass(cdf, y_true)$cint
   cslope <- get_cal_perclass(cdf, y_true)$cslope
   ret <- list(cint = mean(cint),
-              cslope = mean(cslope))
+              cslope = log(mean(cslope))) # slope on log scale
   return(ret)
 }
 
