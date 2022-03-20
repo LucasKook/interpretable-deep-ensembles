@@ -195,7 +195,7 @@ get_indiv_metrics <- function(lys_cdf, y_true,
                             do.call("rbind", lapply(lys_cdf, get_auc, y_true = y_true, cutoff = cutoff)),
                             do.call("rbind", lapply(lys_cdf, function(x) 1 - get_auc(cdf = x, y_true = y_true, cutoff = cutoff))),
                             do.call("rbind", lapply(lys_cdf, get_qwk, y_true = y_true, p = p)),
-                            do.call("rbind", lapply(lys_cdf, function(x) 1 - get_qwk(cdf = x, y_true = y_true, cutoff = cutoff)))
+                            do.call("rbind", lapply(lys_cdf, function(x) 1 - get_qwk(cdf = x, y_true = y_true, p = p)))
                     ))
   ret$metric <- factor(ret$metric, levels = c("nll", "rps", "qwk", "eqwk", "acc", "eacc",
                                               "binnll", "binacc", "ebinacc", "auc", "eauc", "brier",

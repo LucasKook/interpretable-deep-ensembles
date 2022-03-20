@@ -68,7 +68,7 @@ cnn_stroke <- function(output_shape = NULL, mbl = FALSE, ll_activation = "linear
                        dropout_rate = 0.3, ll_bias = FALSE, input_shape = dim(im)[2:5], ...) {
 
   m <- keras_model_sequential() %>%
-    layer_conv_3d(input_shape = input_shape, filters = 32, # 32
+    layer_conv_3d(input_shape = input_shape, filters = 32,
                   kernel_size = c(3, 3, 3), padding = "same",
                   activation = "relu") %>%
     layer_max_pooling_3d(pool_size = c(2, 2, 2)) %>%
