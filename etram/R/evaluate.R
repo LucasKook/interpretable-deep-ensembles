@@ -112,9 +112,6 @@ get_metrics <- function(lys_cdf, y_true, type = c("all", "linear", "log-linear",
       }
     }
   }
-  ret$metric <- factor(ret$metric, levels = c("nll", "rps", "qwk", "eqwk", "acc", "eacc",
-                                              "binnll", "binacc", "ebinacc", "auc", "eauc", "brier",
-                                              "cint", "cslope"))
   switch(
     type,
     "all" = (if ("all" %in% metrics) ret
