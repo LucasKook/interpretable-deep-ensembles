@@ -306,16 +306,7 @@ get_w <- function(lys_cdf_val,
   optim_metric <- match.arg(optim_metric)
   type <- match.arg(type)
   w <- w / sum(w) # ensures that weights sum up to 1
-  if (type == "linear") {
-    weighted_ens <- apply(simplify2array(lys_cdf_val), 1:2,
-                          function(x) weighted.mean(x = x, w = w))
-  } else if (type == "log-linear") {
-    weighted_ens <- exp(apply(simplify2array(lapply(lys_cdf_val, log)), 1:2,
-                              function(x) weighted.mean(x = x, w = w)))
-  } else if (type == "trafo") {
-    weighted_ens <- plogis(apply(simplify2array(lapply(lys_cdf_val, qlogis)), 1:2,
-                                 function(x) weighted.mean(x = x, w = w)))
-  }
+  weighted_ens <- get_ensemble(lys_cdf = lys_cdf_val, type = type, weights = w)
   if (optim_metric == "nll") {
     ret <- get_nll(cdf = weighted_ens, y_true = y_true_val)
     if (!is.finite(ret)) {
@@ -329,4 +320,3 @@ get_w <- function(lys_cdf_val,
   }
   return(ret)
 }
-
