@@ -47,8 +47,8 @@ m3 <- Polr(y ~ x1 + x2, data = d3)
 
 # predict to get cdf
 cdf1 <- t(predict(m1, newdata = d1[, -1L], type = "distribution"))
-cdf2 <- t(predict(m1, newdata = d2[, -1L], type = "distribution"))
-cdf3 <- t(predict(m1, newdata = d3[, -1L], type = "distribution"))
+cdf2 <- t(predict(m2, newdata = d2[, -1L], type = "distribution"))
+cdf3 <- t(predict(m3, newdata = d3[, -1L], type = "distribution"))
 
 # mix predictions of one model
 pdf3 <- t(apply(cbind(0, cdf3), 1, diff))
