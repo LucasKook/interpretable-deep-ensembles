@@ -7,6 +7,7 @@
 plot_metrics(
   met,
   indiv_met = NULL,
+  indiv_ens = TRUE,
   metrics = c("all", "acc", "binacc", "eacc", "ebinacc", "nll", "binnll", "rps",
     "cint", "cslope", "brier", "auc", "eauc", "qwk", "eqwk"),
   facet_labs = NULL,

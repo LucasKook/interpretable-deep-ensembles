@@ -232,18 +232,101 @@ get_order <- function(lys_cdf_val, y_true_val, order_metric = c("nll", "rps")) {
 #'                             0.2, 0.8, 1),
 #'                           nrow = 3, byrow = TRUE))
 #' lys_cdf <- list(cdf1, cdf2, cdf3)
+#' y_true <- data.frame(matrix(c(0, 0, 1,
+#'                               1, 0, 0,
+#'                               0, 1, 0),
+#'                            nrow = 3, byrow = TRUE))
 #'
+#' # equal weights
 #' get_ensemble(lys_cdf = lys_cdf, type = "linear")
-#' get_ensemble(lys_cdf = lys_cdf, type = "log-linear")
-#' get_ensemble(lys_cdf = lys_cdf, type = "trafo")
+#'
+#' # unequal weights
+#' w <- get_w(lys_cdf_val = lys_cdf, y_true_val = y_true, type = "linear", optim_metric = "rps")
+#' get_ensemble(lys_cdf = lys_cdf, type = "linear", weights = w)
 #' @export
-get_ensemble <- function(lys_cdf, type = c("linear", "log-linear", "trafo")) {
+get_ensemble <- function(lys_cdf,
+                         type = c("linear", "log-linear", "trafo"),
+                         weights = rep(1, length(lys_cdf))) {
   type <- match.arg(type)
   lys_cdf <- lapply(lys_cdf, as.matrix)
+  w <- weights
   switch(
     type,
-    "linear" = apply(simplify2array(lys_cdf), 1:2, mean),
-    "log-linear" = exp(apply(simplify2array(lapply(lys_cdf, log)), 1:2, mean)),
-    "trafo" = plogis(apply(simplify2array(lapply(lys_cdf, qlogis)), 1:2, mean))
+    "linear" = apply(simplify2array(lys_cdf), 1:2,
+                     function(x) weighted.mean(x = x, w = w)),
+    "log-linear" = exp(apply(simplify2array(lapply(lys_cdf, log)), 1:2,
+                             function(x) weighted.mean(x = x, w = w))),
+    "trafo" = plogis(apply(simplify2array(lapply(lys_cdf, qlogis)), 1:2,
+                           function(x) weighted.mean(x = x, w = w)))
   )
 }
+
+#' Get weights per ensemble member
+#' @examples
+#' cdf1 <- data.frame(matrix(c(0.1, 0.2, 1,
+#'                             0.3, 0.7, 1,
+#'                             0.5, 0.7, 1),
+#'                           nrow = 3, byrow = TRUE))
+#' cdf2 <- data.frame(matrix(c(0.2, 0.3, 1,
+#'                             0.5, 0.8, 1,
+#'                             0.2, 0.9, 1),
+#'                           nrow = 3, byrow = TRUE))
+#' cdf3 <- data.frame(matrix(c(0.7, 0.8, 1,
+#'                             0.6, 0.8, 1,
+#'                             0.2, 0.8, 1),
+#'                           nrow = 3, byrow = TRUE))
+#' lys_cdf <- list(cdf1, cdf2, cdf3)
+#' y_true <- data.frame(matrix(c(0, 0, 1,
+#'                               1, 0, 0,
+#'                               0, 1, 0),
+#'                            nrow = 3, byrow = TRUE))
+#'
+#' get_w(lys_cdf_val = lys_cdf, y_true_val = y_true, type = "trafo", optim_metric = "nll")
+#' @export
+get_w <- function(lys_cdf_val,
+                  y_true_val,
+                  type = c("linear", "log-linear", "trafo"),
+                  optim_metric = c("nll", "rps")) {
+  lys_cdf_val <- lapply(lys_cdf_val, as.matrix)
+  nens <- length(lys_cdf_val)
+  start <- 1/nens
+  w <- optim(par = rep(start, nens), fn = .opt, method = "L-BFGS-B",
+             lower = rep(0, nens), upper = rep(1, nens),
+             lys_cdf_val = lys_cdf_val, y_true_val = y_true_val, type = type,
+             optim_metric = optim_metric)$par
+  ret <- w / sum(w)
+  return(ret)
+}
+
+.opt <- function(w,
+                 lys_cdf_val,
+                 y_true_val,
+                 type = c("linear", "log-linear", "trafo"),
+                 optim_metric = c("nll", "rps")) {
+  optim_metric <- match.arg(optim_metric)
+  type <- match.arg(type)
+  w <- w / sum(w) # ensures that weights sum up to 1
+  if (type == "linear") {
+    weighted_ens <- apply(simplify2array(lys_cdf_val), 1:2,
+                          function(x) weighted.mean(x = x, w = w))
+  } else if (type == "log-linear") {
+    weighted_ens <- exp(apply(simplify2array(lapply(lys_cdf_val, log)), 1:2,
+                              function(x) weighted.mean(x = x, w = w)))
+  } else if (type == "trafo") {
+    weighted_ens <- plogis(apply(simplify2array(lapply(lys_cdf_val, qlogis)), 1:2,
+                                 function(x) weighted.mean(x = x, w = w)))
+  }
+  if (optim_metric == "nll") {
+    ret <- get_nll(cdf = weighted_ens, y_true = y_true_val)
+    if (!is.finite(ret)) {
+      ret <- 10^6 # optim needs finite values
+    }
+  } else if (optim_metric == "rps") {
+    ret <- get_rps(cdf = weighted_ens, y_true = y_true_val)
+    if (!is.finite(ret)) {
+      ret <- 1 # optim needs finite values
+    }
+  }
+  return(ret)
+}
+
