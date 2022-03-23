@@ -96,9 +96,9 @@ get_metrics <- function(lys_cdf, y_true, type = c("all", "linear", "log-linear",
                                             1 - get_qwk(cdf, y_true, p = p))
       } else if (meth %in% "avg") {
         ret[ret$method == meth, "val"] <- c(get_avg_acc(lys_cdf, y_true),
-                                            get_avg_binacc(sub_lys_cdf, y_true, cutoff = cutoff),
+                                            get_avg_binacc(lys_cdf, y_true, cutoff = cutoff),
                                             1 - get_avg_acc(lys_cdf, y_true),
-                                            1 - get_avg_binacc(sub_lys_cdf, y_true, cutoff = cutoff),
+                                            1 - get_avg_binacc(lys_cdf, y_true, cutoff = cutoff),
                                             get_avg_nll(lys_cdf, y_true),
                                             get_avg_binnll(lys_cdf, y_true, cutoff = cutoff),
                                             get_avg_rps(lys_cdf, y_true),
@@ -149,8 +149,13 @@ get_metrics_allspl <- function(lys_cdf_all, y_true_all, type = c("all", "linear"
   for (s in seq_len(spl)) {
     lys_cdf <- lys_cdf_all[[s]]
     y_true <- y_true_all[[s]]
-    lys_cdf_val <- lys_cdf_val_all[[s]]
-    y_true_val <- y_true_val_all[[s]]
+    if (!is.null(lys_cdf_val_all)) {
+      lys_cdf_val <- lys_cdf_val_all[[s]]
+      y_true_val <- y_true_val_all[[s]]
+    } else {
+      lys_cdf_val <- NULL
+      y_true_val <- NULL
+    }
     tmp <- get_metrics(lys_cdf = lys_cdf, y_true = y_true, type = type,
                        metrics = metrics,
                        topk = topk, order_metric = order_metric,
