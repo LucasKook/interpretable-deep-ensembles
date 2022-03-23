@@ -101,29 +101,38 @@ test_that("ensemble works", {
       terms1_train <- terms_test[[1]][[1]]
       K <- ncol(cdf1_test)
 
-      expect_true(is.list(cdf_test) & is.list(cdf_val) & is.list(cdf_train))
-      expect_true(all(cdf1_test[, K] == 1) &
-                  all(cdf1_val[, K] == 1) &
-                  all(cdf1_train[, K] == 1))
-      expect_false(any(is.na(cdf1_test)) &
-                   any(is.na(cdf1_val)) &
-                   any(is.na(cdf1_train)))
+      # CDF
+      expect_is(cdf_train, "list")
+      expect_is(cdf_test, "list")
+      expect_is(cdf_val, "list")
+      expect_true(all(cdf1_test[, K] == 1))
+      expect_true(all(cdf1_val[, K] == 1))
+      expect_true(all(cdf1_train[, K] == 1))
+      expect_false(any(is.na(cdf1_train)))
+      expect_false(any(is.na(cdf1_test)))
+      expect_false(any(is.na(cdf1_val)))
 
-      expect_true(is.list(trafo_test) & is.list(trafo_val) & is.list(trafo_train))
-      expect_true(ncol(trafo1_test) == K - 1 &
-                  ncol(trafo1_val) == K - 1 &
-                  ncol(trafo1_train) == K - 1)
-      expect_false(any(is.na(trafo1_test)) &
-                   any(is.na(trafo1_val)) &
-                   any(is.na(trafo1_train)))
+      # TRAFO
+      expect_is(trafo_train, "list")
+      expect_is(trafo_val, "list")
+      expect_is(trafo_test, "list")
+      expect_equal(ncol(trafo1_train), K - 1)
+      expect_equal(ncol(trafo1_val), K - 1)
+      expect_equal(ncol(trafo1_test), K - 1)
+      expect_false(any(is.na(trafo1_train)))
+      expect_false(any(is.na(trafo1_val)))
+      expect_false(any(is.na(trafo1_test)))
 
-      expect_true(is.list(terms_test) & is.list(terms_val) & is.list(terms_train))
-      expect_true(ncol(terms1_test) == K  &
-                  ncol(terms1_val) == K &
-                  ncol(terms1_train) == K)
-      expect_false(any(is.na(terms1_test)) &
-                   any(is.na(terms1_val)) &
-                   any(is.na(terms1_train)))
+      # Terms
+      expect_is(terms_train, "list")
+      expect_is(terms_val, "list")
+      expect_is(terms_test, "list")
+      expect_equal(ncol(terms1_train), K)
+      expect_equal(ncol(terms1_val), K)
+      expect_equal(ncol(terms1_test), K)
+      expect_false(any(is.na(terms1_train)))
+      expect_false(any(is.na(terms1_val)))
+      expect_false(any(is.na(terms1_test)))
 
       if (tmod %in% c("silscs", "cils")) {
         lors <- list_lors(in_dir = "./", fname = "ttest", splits = 2, ensembles = 2)
