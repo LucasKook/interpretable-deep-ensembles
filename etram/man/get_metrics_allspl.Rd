@@ -15,7 +15,8 @@ get_metrics_allspl(
   lys_cdf_val_all = NULL,
   y_true_val_all = NULL,
   cutoff = 3,
-  p = 2
+  p = 2,
+  weights = matrix(1, nrow = length(lys_cdf_all), ncol = length(lys_cdf_all[[1]]))
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ get_metrics_allspl(
 \item{cutoff}{cutoff used to evaluate binary metrics.}
 
 \item{p}{weighting scheme used for qwk.}
+
+\item{weights}{matrix of weights (cols) per split (rows).}
 }
 \description{
 Evaluation of all splits

@@ -15,7 +15,8 @@ get_metrics(
   lys_cdf_val = NULL,
   y_true_val = NULL,
   cutoff = 3,
-  p = 2
+  p = 2,
+  weights = rep(1, length(lys_cdf))
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ get_metrics(
 \item{cutoff}{cutoff used to evaluate binary metrics.}
 
 \item{p}{weighting scheme used for qwk.}
+
+\item{weights}{vector of weights for ensemble members.}
 }
 \description{
 Evaluation of ensemble

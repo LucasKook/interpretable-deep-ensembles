@@ -10,12 +10,14 @@
 #' @param y_true_val one-hot encoded true \code{y} of validation set.
 #' @param cutoff cutoff used to evaluate binary metrics.
 #' @param p weighting scheme used for qwk.
+#' @param weights vector of weights for ensemble members.
 #' @export
 get_metrics <- function(lys_cdf, y_true, type = c("all", "linear", "log-linear", "trafo", "avg"),
                         metrics = c("all", "acc", "binacc", "eacc", "ebinacc", "nll", "binnll", "rps", "cint",
                                     "cslope", "brier", "auc", "eauc", "qwk", "eqwk"),
                         topk = TRUE, order_metric = c("nll", "rps"),
-                        lys_cdf_val = NULL, y_true_val = NULL, cutoff = 3, p = 2) {
+                        lys_cdf_val = NULL, y_true_val = NULL, cutoff = 3, p = 2,
+                        weights = rep(1, length(lys_cdf))) {
   all_metrics <- c("acc", "binacc", "eacc", "ebinacc", "nll", "binnll", "rps", "cint",
                    "cslope", "brier", "auc", "eauc", "qwk", "eqwk")
   all_methods <- c("linear", "log-linear", "trafo", "avg")
@@ -37,7 +39,7 @@ get_metrics <- function(lys_cdf, y_true, type = c("all", "linear", "log-linear",
       if (!(meth %in% "avg")) {
         for (n in 1:ens) {
           sub_lys_cdf <- lys_cdf[1:n]
-          cdf <- get_ensemble(sub_lys_cdf, meth)
+          cdf <- get_ensemble(lys_cdf = sub_lys_cdf, type = meth, weights = weights[1:n])
           ret[ret$method == meth & ret$topn == n, "val"] <- c(get_acc(cdf, y_true),
                                                               get_binacc(cdf, y_true, cutoff = cutoff),
                                                               1 - get_acc(cdf, y_true),
@@ -79,7 +81,7 @@ get_metrics <- function(lys_cdf, y_true, type = c("all", "linear", "log-linear",
                       method = rep(all_methods, each = nmetrics))
     for (meth in all_methods) {
       if (!(meth %in% "avg")) {
-        cdf <- get_ensemble(lys_cdf, meth)
+        cdf <- get_ensemble(lys_cdf = lys_cdf, type = meth, weights = weights)
         ret[ret$method == meth, "val"] <- c(get_acc(cdf, y_true),
                                             get_binacc(cdf, y_true, cutoff = cutoff),
                                             1 - get_acc(cdf, y_true),
@@ -138,12 +140,14 @@ get_metrics <- function(lys_cdf, y_true, type = c("all", "linear", "log-linear",
 #' @param y_true_val_all list of one-hot encoded true \code{y} of validation set for all splits.
 #' @param cutoff cutoff used to evaluate binary metrics.
 #' @param p weighting scheme used for qwk.
+#' @param weights matrix of weights (cols) per split (rows).
 #' @export
 get_metrics_allspl <- function(lys_cdf_all, y_true_all, type = c("all", "linear", "log-linear", "trafo", "avg"),
                                metrics = c("all", "acc", "binacc", "eacc", "ebinacc", "nll", "binnll", "rps", "cint",
                                            "cslope", "brier", "auc", "eauc", "qwk", "eqwk"),
                                topk = TRUE, order_metric = c("nll", "rps"),
-                               lys_cdf_val_all = NULL, y_true_val_all = NULL, cutoff = 3, p = 2) {
+                               lys_cdf_val_all = NULL, y_true_val_all = NULL, cutoff = 3, p = 2,
+                               weights = matrix(1, nrow = length(lys_cdf_all), ncol = length(lys_cdf_all[[1]]))) {
   spl <- length(lys_cdf_all)
   ret <- list()
   for (s in seq_len(spl)) {
@@ -156,10 +160,12 @@ get_metrics_allspl <- function(lys_cdf_all, y_true_all, type = c("all", "linear"
       lys_cdf_val <- NULL
       y_true_val <- NULL
     }
+    w <- weights[s, ]
     tmp <- get_metrics(lys_cdf = lys_cdf, y_true = y_true, type = type,
                        metrics = metrics,
                        topk = topk, order_metric = order_metric,
-                       lys_cdf_val = lys_cdf_val, y_true_val = y_true_val, cutoff = cutoff, p = p)
+                       lys_cdf_val = lys_cdf_val, y_true_val = y_true_val, cutoff = cutoff, p = p,
+                       weights = w)
     tmp$spl <- s
     ret[[s]] <- tmp
   }
