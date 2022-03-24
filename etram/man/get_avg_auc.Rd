@@ -4,7 +4,7 @@
 \alias{get_avg_auc}
 \title{Calculate mean area under the ROC curve of ensemble members}
 \usage{
-get_avg_auc(lys_cdf, y_true, cutoff = 3)
+get_avg_auc(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf)))
 }
 \arguments{
 \item{lys_cdf}{list of CDFs (e.g. CDFs of ensemble members).}

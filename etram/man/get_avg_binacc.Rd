@@ -4,7 +4,7 @@
 \alias{get_avg_binacc}
 \title{Calculate mean binary accuracy of ensemble members}
 \usage{
-get_avg_binacc(lys_cdf, y_true, cutoff = 3)
+get_avg_binacc(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf)))
 }
 \arguments{
 \item{lys_cdf}{list of CDFs (e.g. CDFs of ensemble members).}

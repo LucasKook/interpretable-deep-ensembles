@@ -37,9 +37,9 @@ get_acc <- function(cdf, y_true) {
 #'                             nrow = 3, byrow = T))
 #' get_avg_acc(lys_cdf = lys_cdf, y_true = y_true)
 #' @export
-get_avg_acc <- function(lys_cdf, y_true) {
+get_avg_acc <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_acc, y_true = y_true)))
+  weighted.mean(unlist(lapply(lys_cdf, get_acc, y_true = y_true)), w = weights)
 }
 
 #' Calculate binary accuracy
@@ -81,9 +81,9 @@ get_binacc <- function(cdf, y_true, cutoff = 3) {
 #' get_avg_binacc(lys_cdf = lys_cdf, y_true = y_true, cutoff = 2)
 #' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
 #' @export
-get_avg_binacc <- function(lys_cdf, y_true, cutoff = 3) {
+get_avg_binacc <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_binacc, y_true = y_true, cutoff = cutoff)))
+  weighted.mean(unlist(lapply(lys_cdf, get_binacc, y_true = y_true, cutoff = cutoff)), w = weights)
 }
 
 #' Calculate ranked probability score
@@ -125,9 +125,9 @@ get_rps <- function(cdf, y_true) {
 #' get_avg_rps(lys_cdf = lys_cdf, y_true = y_true)
 #' @param lys_cdf list of CDFs (e.g. CDFs of ensemble members).
 #' @export
-get_avg_rps <- function(lys_cdf, y_true) {
+get_avg_rps <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_rps, y_true = y_true)))
+  weighted.mean(unlist(lapply(lys_cdf, get_rps, y_true = y_true)), w = weights)
 }
 
 #' Calculate negative log-likelihood
@@ -169,9 +169,9 @@ get_nll <- function(cdf, y_true) {
 #'                             nrow = 3, byrow = T))
 #' get_avg_nll(lys_cdf = lys_cdf, y_true = y_true)
 #' @export
-get_avg_nll <- function(lys_cdf, y_true) {
+get_avg_nll <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_nll, y_true = y_true)))
+  weighted.mean(unlist(lapply(lys_cdf, get_nll, y_true = y_true)), w = weights)
 }
 
 #' Calculate binary negative log-likelihood
@@ -213,9 +213,9 @@ get_binnll <- function(cdf, y_true, cutoff = 3) {
 #'                             nrow = 3, byrow = T))
 #' get_avg_binnll(lys_cdf = lys_cdf, y_true = y_true, cutoff = 2)
 #' @export
-get_avg_binnll <- function(lys_cdf, y_true, cutoff = 3) {
+get_avg_binnll <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_binnll, y_true = y_true, cutoff = cutoff)))
+  weighted.mean(unlist(lapply(lys_cdf, get_binnll, y_true = y_true, cutoff = cutoff)), w = weights)
 }
 
 #' Calculate area under the ROC curve
@@ -258,9 +258,9 @@ get_auc <- function(cdf, y_true, cutoff = 3) {
 #'                             nrow = 3, byrow = T))
 #' get_avg_auc(lys_cdf = lys_cdf, y_true = y_true, cutoff = 2)
 #' @export
-get_avg_auc <- function(lys_cdf, y_true, cutoff = 3) {
+get_avg_auc <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_auc, y_true = y_true, cutoff = cutoff)))
+  weighted.mean(unlist(lapply(lys_cdf, get_auc, y_true = y_true, cutoff = cutoff)), w = weights)
 }
 
 #' Calculate quadratic weighted kappa
@@ -312,9 +312,9 @@ get_qwk <- function(cdf, y_true, p = 2) {
 #'                             nrow = 3, byrow = T))
 #' get_avg_qwk(lys_cdf = lys_cdf, y_true = y_true, p = 2)
 #' @export
-get_avg_qwk <- function(lys_cdf, y_true, p = 2) {
+get_avg_qwk <- function(lys_cdf, y_true, p = 2, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_qwk, y_true = y_true, p = p)))
+  weighted.mean(unlist(lapply(lys_cdf, get_qwk, y_true = y_true, p = p)), w = weights)
 }
 
 #' Calculate calibration intercept and slope per class
@@ -388,12 +388,12 @@ get_cal <- function(cdf, y_true) {
 #'                             nrow = 3, byrow = T))
 #' get_avg_cal(lys_cdf = lys_cdf, y_true = y_true)
 #' @export
-get_avg_cal <- function(lys_cdf, y_true) {
+get_avg_cal <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
   cint <- sapply(lapply(lys_cdf, get_cal, y_true = y_true), "[[", 1)
   cslope <- sapply(lapply(lys_cdf, get_cal, y_true = y_true), "[[", 2)
-  ret <- list(cint = mean(cint),
-              cslope = mean(cslope))
+  ret <- list(cint = weighted.mean(cint, w = weights),
+              cslope = weighted.mean(cslope, w = weights))
   return(ret)
 }
 
@@ -435,8 +435,8 @@ get_brier <- function(cdf, y_true, cutoff = 3) {
 #'                             nrow = 3, byrow = T))
 #' get_avg_brier(lys_cdf = lys_cdf, y_true = y_true)
 #' @export
-get_avg_brier <- function(lys_cdf, y_true, cutoff = 3) {
+get_avg_brier <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  mean(unlist(lapply(lys_cdf, get_brier, y_true = y_true, cutoff = cutoff)))
+  weighted.mean(unlist(lapply(lys_cdf, get_brier, y_true = y_true, cutoff = cutoff)), w = weights)
 }
 
