@@ -97,20 +97,20 @@ get_metrics <- function(lys_cdf, y_true, type = c("all", "linear", "log-linear",
                                             get_qwk(cdf, y_true, p = p),
                                             1 - get_qwk(cdf, y_true, p = p))
       } else if (meth %in% "avg") {
-        ret[ret$method == meth, "val"] <- c(get_avg_acc(lys_cdf, y_true),
-                                            get_avg_binacc(lys_cdf, y_true, cutoff = cutoff),
-                                            1 - get_avg_acc(lys_cdf, y_true),
-                                            1 - get_avg_binacc(lys_cdf, y_true, cutoff = cutoff),
-                                            get_avg_nll(lys_cdf, y_true),
-                                            get_avg_binnll(lys_cdf, y_true, cutoff = cutoff),
-                                            get_avg_rps(lys_cdf, y_true),
-                                            get_avg_cal(lys_cdf, y_true)$cint,
-                                            get_avg_cal(lys_cdf, y_true)$cslope,
-                                            get_avg_brier(lys_cdf, y_true),
-                                            get_avg_auc(lys_cdf, y_true, cutoff = cutoff),
-                                            1 - get_avg_auc(lys_cdf, y_true, cutoff = cutoff),
-                                            get_avg_qwk(lys_cdf, y_true, p = p),
-                                            1 - get_avg_qwk(lys_cdf, y_true, p = p))
+        ret[ret$method == meth, "val"] <- c(get_avg_acc(lys_cdf, y_true, weights = weights),
+                                            get_avg_binacc(lys_cdf, y_true, cutoff = cutoff, weights = weights),
+                                            1 - get_avg_acc(lys_cdf, y_true, weights = weights),
+                                            1 - get_avg_binacc(lys_cdf, y_true, cutoff = cutoff, weights = weights),
+                                            get_avg_nll(lys_cdf, y_true, weights = weights),
+                                            get_avg_binnll(lys_cdf, y_true, cutoff = cutoff, weights = weights),
+                                            get_avg_rps(lys_cdf, y_true, weights = weights),
+                                            get_avg_cal(lys_cdf, y_true, weights = weights)$cint,
+                                            get_avg_cal(lys_cdf, y_true, weights = weights)$cslope,
+                                            get_avg_brier(lys_cdf, y_true, weights = weights),
+                                            get_avg_auc(lys_cdf, y_true, cutoff = cutoff, weights = weights),
+                                            1 - get_avg_auc(lys_cdf, y_true, cutoff = cutoff, weights = weights),
+                                            get_avg_qwk(lys_cdf, y_true, p = p, weights = weights),
+                                            1 - get_avg_qwk(lys_cdf, y_true, p = p, weights = weights))
       }
     }
   }
