@@ -2,12 +2,12 @@
 % Please edit documentation in R/metrics.R
 \name{get_cal_perclass}
 \alias{get_cal_perclass}
-\title{Calculate calibration intercept and slope per class}
+\title{Calculate calibration intercept and slope per class (K-1)}
 \usage{
 get_cal_perclass(cdf, y_true)
 }
 \description{
-Calculate calibration intercept and slope per class
+Calculate calibration intercept and slope per class (K-1)
 }
 \examples{
 cdf <- data.frame(matrix(c(0.2, 0.6, 1,

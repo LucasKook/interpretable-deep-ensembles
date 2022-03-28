@@ -317,7 +317,7 @@ get_avg_qwk <- function(lys_cdf, y_true, p = 2, weights = rep(1, length(lys_cdf)
   weighted.mean(unlist(lapply(lys_cdf, get_qwk, y_true = y_true, p = p)), w = weights)
 }
 
-#' Calculate calibration intercept and slope per class
+#' Calculate calibration intercept and slope per class (K-1)
 #' @examples
 #' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
 #'                            0.5, 0.7, 1,
@@ -334,14 +334,17 @@ get_cal_perclass <- function(cdf, y_true) {
   K <- ncol(y_true)
   pdf <- t(apply(cbind(0, cdf), 1, diff))
   pdf[pdf == 0] <- 1e-20
-  logits <- apply(pdf, 2, qlogis)
-  cint <- numeric(K)
-  cslope <- numeric(K)
-  for (cl in seq_len(K)) {
-    df <- as.data.frame(cbind(y = y_true[, cl], logits = logits[, cl]))
-    m_cint <- glm(I(y == 1) ~ offset(logits), data = df, family = "binomial")
+  cint <- numeric(K-1)
+  cslope <- numeric(K-1)
+  for (cl in seq_len(K-1)) {
+    yt <- apply(y_true, 1, function(x) sum(x[1:cl]))
+    yp <- apply(pdf, 1, function(x) sum(x[1:cl]))
+    yp[yp == 1] <- 0.999
+    logits <- qlogis(yp)
+    df <- as.data.frame(cbind(y = yt, l = logits))
+    m_cint <- glm(I(y == 1) ~ offset(l), data = df, family = "binomial")
     cint[cl] <- coef(m_cint)[1]
-    m_cslope <- glm(I(y == 1) ~ logits, data = df, family = "binomial")
+    m_cslope <- glm(I(y == 1) ~ l, data = df, family = "binomial")
     cslope[cl] <- coef(m_cslope)[2]
   }
   ret <- list(cint = cint,
@@ -366,7 +369,7 @@ get_cal <- function(cdf, y_true) {
   cint <- get_cal_perclass(cdf, y_true)$cint
   cslope <- get_cal_perclass(cdf, y_true)$cslope
   ret <- list(cint = mean(cint),
-              cslope = log(mean(cslope))) # slope on log scale
+              cslope = mean(cslope))
   return(ret)
 }
 

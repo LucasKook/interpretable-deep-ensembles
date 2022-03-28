@@ -344,16 +344,18 @@ get_bins <- function(cdf, y_true, bins = 10) {
                     uci = numeric(),
                     lci = numeric(),
                     class = factor())
-  for (cl in 1:K) {
-    df <- data.frame(pred = pdf[, cl], true = y_true[, cl])
+  for (cl in 1:(K-1)) {
+    yt <- apply(y_true, 1, function(x) sum(x[1:cl]))
+    yp <- apply(pdf, 1, function(x) sum(x[1:cl]))
+    df <- data.frame(pred = yp, true = yt)
     tmp <- df %>% mutate(bin = cut(pred, breaks = seq(0, 1, by = 1/bins), labels = FALSE)) %>%
       group_by(bin) %>%
       mutate(n = n(),
              pred = mean(pred),
              obs = mean(true),
              se = sqrt((obs * (1 - obs)) / n),
-             uci = obs + 1.96 * se,
-             lci = obs - 1.96 * se,
+             uci = obs + qnorm(0.975) * se,
+             lci = obs - qnorm(0.975) * se,
              class = cl)
     ret <- rbind(ret, tmp)
   }

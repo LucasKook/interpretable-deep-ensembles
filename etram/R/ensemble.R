@@ -227,6 +227,7 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
           write.csv(lor, file = lorpath, row.names = FALSE)
         }
         gc() # garbage collection
+        rm(list = ls())
       }
     } else if (mod %in% c("si", "sils")) {
 
