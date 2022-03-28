@@ -462,5 +462,12 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
       write.csv(raw_val, file = rvalpath)
       write.csv(raw_test, file = rtestpath)
     }
+    rm(y_train, y_val, y_test)
+    if (!is.null(x)) {
+      rm(x_train, x_val, x_test)
+    }
+    if (!is.null(im)) {
+      rm(im_train, im_val, im_test)
+    }
   }
 }
