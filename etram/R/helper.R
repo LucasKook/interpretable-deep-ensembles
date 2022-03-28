@@ -350,13 +350,13 @@ get_bins <- function(cdf, y_true, bins = 10) {
     df <- data.frame(pred = yp, true = yt)
     tmp <- df %>% mutate(bin = cut(pred, breaks = seq(0, 1, by = 1/bins), labels = FALSE)) %>%
       group_by(bin) %>%
-      mutate(n = n(),
-             pred = mean(pred),
-             obs = mean(true),
-             se = sqrt((obs * (1 - obs)) / n),
-             uci = obs + qnorm(0.975) * se,
-             lci = obs - qnorm(0.975) * se,
-             class = cl)
+      summarise(n = n(),
+                pred = mean(pred),
+                obs = mean(true),
+                se = sqrt((obs * (1 - obs)) / n),
+                uci = obs + qnorm(0.975) * se,
+                lci = obs - qnorm(0.975) * se,
+                class = cl)
     ret <- rbind(ret, tmp)
   }
   return(ret)

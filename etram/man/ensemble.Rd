@@ -23,6 +23,7 @@ ensemble(
   augment = FALSE,
   aug_params = list(rotation_range = 20, width_shift_range = 0.2, height_shift_range =
     0.2, zoom_range = 0.15, shear_range = 0.15, fill_mode = "nearest"),
+  fit_batchwise = FALSE,
   out_dir,
   fname
 )
@@ -44,6 +45,8 @@ Arguments \code{input_shape}, \code{output_shape} and \code{mbl} are required (s
 \item{augment}{logical. Whether to perform 2D image augmentation during training.}
 
 \item{aug_params}{parameters used for image augmentation.}
+
+\item{fit_batchwise}{logical. If \code{TRUE} model is trained batchwise (used to save memory).}
 
 \item{out_dir}{directory to save results.}
 
