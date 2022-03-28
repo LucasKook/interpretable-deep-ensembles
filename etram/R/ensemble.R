@@ -27,7 +27,7 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
                                                                     zoom_range = 0.15,
                                                                     shear_range = 0.15,
                                                                     fill_mode = "nearest"),
-                     fit_batchwise = FALSE,
+                     train_batchwise = FALSE,
                      out_dir, fname) {
 
   # stopifnot(nrow(ridx) == (splits * nrow(tab_dat)))
@@ -136,7 +136,7 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
         hpath <- paste0(out_dir, fname, "_hist_spl", spl, "_ens", ens, ".csv")
 
         if (!augment) {
-          if (!fit_batchwise) {
+          if (!train_batchwise) {
             h <- fit(m,
                      x = inp_train, y = y_train,
                      validation_data = list(inp_val, y_val),
@@ -148,21 +148,19 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
                      view_metrics = FALSE)
             save_k_hist(h, hpath)
             load_model_weights_hdf5(m, mpath)
-          } else if (fit_batchwise) {
+          } else if (train_batchwise) {
             im_gen <- image_data_generator() # no augmentation per default
-            if (mod %in% c("cils", "ci")) {
-              mim_as_mbl <- TRUE
-            } else {
-              mim_as_mbl <- FALSE
-            }
-            f <- fit_k_ontram_augmented_data(m,
-                                             im_train = im_train, im_val = im_val,
-                                             x_train = x_train, x_val = x_val,
-                                             y_train = y_train, y_val = y_val,
-                                             generator = im_gen, epochs = epochs, bs = bs,
-                                             mim_as_mbl = mim_as_mbl,
-                                             patience = 1, filepath = mpath)
-            h <- f$hist
+            h <- fit_generator(m,
+                               x = inp_train, y = y_train,
+                               validation_data = list(inp_val, y_val),
+                               steps_per_epoch = ceiling(nrow(y_train)/bs),
+                               validation_steps = ceiling(nrow(y_val)/bs),
+                               shuffle = TRUE, batch_size = bs, epochs = epochs,
+                               callbacks = list(callback_model_checkpoint(mpath,
+                                                                          monitor = "val_loss",
+                                                                          save_best_only = TRUE,
+                                                                          save_weights_only = TRUE)),
+                     view_metrics = FALSE)
             save_k_hist(h, hpath)
             load_model_weights_hdf5(m, mpath)
           }

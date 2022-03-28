@@ -23,7 +23,7 @@ ensemble(
   augment = FALSE,
   aug_params = list(rotation_range = 20, width_shift_range = 0.2, height_shift_range =
     0.2, zoom_range = 0.15, shear_range = 0.15, fill_mode = "nearest"),
-  fit_batchwise = FALSE,
+  train_batchwise = FALSE,
   out_dir,
   fname
 )
@@ -46,11 +46,11 @@ Arguments \code{input_shape}, \code{output_shape} and \code{mbl} are required (s
 
 \item{aug_params}{parameters used for image augmentation.}
 
-\item{fit_batchwise}{logical. If \code{TRUE} model is trained batchwise (used to save memory).}
-
 \item{out_dir}{directory to save results.}
 
 \item{fname}{unique file name.}
+
+\item{fit_batchwise}{logical. If \code{TRUE} model is trained batchwise (used to save memory).}
 }
 \description{
 Depending on the model and response type a \code{k_ontram}, \code{Polr} or \code{glm} model is fit.
