@@ -9,7 +9,7 @@ cnn_utkface <- function(output_shape = NULL, mbl = FALSE, ll_activation = "linea
     layer_conv_2d(input_shape = input_shape,
                   filters = 16, kernel_size = c(3, 3), padding = "same", activation = "relu") %>%
     layer_dropout(rate = dropout_rate) %>%
-    layer_conv_2d(filters = 32, kernel_size = c(3, 3), padding = "same", activation = "relu") %>%
+    layer_conv_2d(filters = 16, kernel_size = c(3, 3), padding = "same", activation = "relu") %>%
     layer_dropout(rate = dropout_rate) %>%
     layer_max_pooling_2d(pool_size = c(2, 2)) %>%
 

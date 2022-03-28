@@ -320,3 +320,42 @@ get_w <- function(lys_cdf_val,
   }
   return(ret)
 }
+
+#' Get predicted and observed probabilities
+#' @examples
+#' cdf <- data.frame(matrix(c(0.2, 0.6, 1,
+#'                            0.5, 0.7, 1,
+#'                            0.1, 0.8, 1),
+#'                          nrow = 3, byrow = T))
+#' y_true <- data.frame(matrix(c(0, 1, 0,
+#'                               1, 0, 0,
+#'                               0, 0, 1),
+#'                             nrow = 3, byrow = T))
+#' get_bins(cdf = cdf, y_true = y_true, bins = 10)
+#' @export
+get_bins <- function(cdf, y_true, bins = 10) {
+  cdf <- as.matrix(cdf)
+  K <- ncol(y_true)
+  pdf <- t(apply(cbind(0, cdf), 1, diff))
+  ret <- data.frame(n = numeric(),
+                    pred = numeric(),
+                    obs = numeric(),
+                    se = numeric(),
+                    uci = numeric(),
+                    lci = numeric(),
+                    class = factor())
+  for (cl in 1:K) {
+    df <- data.frame(pred = pdf[, cl], true = y_true[, cl])
+    tmp <- df %>% mutate(bin = cut(pred, breaks = seq(0, 1, by = 1/bins), labels = FALSE)) %>%
+      group_by(bin) %>%
+      mutate(n = n(),
+             pred = mean(pred),
+             obs = mean(true),
+             se = sqrt((obs * (1 - obs)) / n),
+             uci = obs + 1.96 * se,
+             lci = obs - 1.96 * se,
+             class = cl)
+    ret <- rbind(ret, tmp)
+  }
+  return(ret)
+}
