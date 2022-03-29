@@ -10,8 +10,9 @@ ensemble(
   tab_dat,
   im = NULL,
   ridx,
-  splits = 5,
+  splits = 6,
   ensembles = 5,
+  single_split = NULL,
   nn = NULL,
   input_shape = NULL,
   bs = 1,
@@ -36,8 +37,10 @@ ensemble(
 
 \item{ridx}{row indices used for each split (output from \code{get_ridx}).}
 
-\item{nn}{function to build neural network used for modeling complex intercept or complex shift term.
+\item{single_split}{numeric. Number of split that should be fitted.
 Arguments \code{input_shape}, \code{output_shape} and \code{mbl} are required (see \code{\link{cnn_stroke}} for an example).}
+
+\item{nn}{function to build neural network used for modeling complex intercept or complex shift term.}
 
 \item{ws}{logical. Whether to initialize simple intercept and linear shift terms using the parameters estimated by a
 \code{Polr} or \code{glm} model (depending on the response type).}

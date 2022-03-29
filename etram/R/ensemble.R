@@ -7,6 +7,7 @@
 #' (also for binary responses).
 #' @param ridx row indices used for each split (output from \code{get_ridx}).
 #' @param nn function to build neural network used for modeling complex intercept or complex shift term.
+#' @param single_split numeric. Number of split that should be fitted.
 #' Arguments \code{input_shape}, \code{output_shape} and \code{mbl} are required (see \code{\link{cnn_stroke}} for an example).
 #' @param ws logical. Whether to initialize simple intercept and linear shift terms using the parameters estimated by a
 #' \code{Polr} or \code{glm} model (depending on the response type).
@@ -17,7 +18,7 @@
 #' @param fname unique file name.
 #' @export
 ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml, tab_dat, im = NULL, ridx,
-                     splits = 5, ensembles = 5,
+                     splits = 6, ensembles = 5, single_split = NULL,
                      nn = NULL, input_shape = NULL,
                      bs = 1, lr = 5e-5, optimizer = optimizer_adam(learning_rate = lr), epochs = 10,
                      loss = c("nll", "rps"),
@@ -58,7 +59,14 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
   mfy <- model.frame(fmly, data = tab_dat)
   y <- model.matrix(fmly, data = mfy)
 
-  for (spl in seq_len(splits)) {
+  if (is.null(single_split)) {
+    start <- 1
+    end <- splits
+  } else {
+    start <- end <- single_split
+  }
+
+  for (spl in start:end) {
 
     ### Train, test, validation set for current split ###
 
