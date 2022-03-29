@@ -361,3 +361,58 @@ get_bins <- function(cdf, y_true, bins = 10) {
   }
   return(ret)
 }
+
+#' Data generator
+#' @description  Data generator that feeds data real-time to model.
+#' @export
+generator <- function(mod = c("silscs", "sics", "cils", "ci"),
+                      im, x = NULL, y,
+                      batch_size = 32,
+                      shuffle = TRUE) {
+  mod <- match.arg(mod)
+  n <- nrow(im)
+  # start iterator
+  i <- 1
+
+  function() {
+    if (shuffle) {
+      ridx <- sample(seq_len(n), size = batch_size)
+    } else {
+      if (i + batch_size >= n) {
+        i <<- 1
+      }
+      ridx <- c(i:min(i + batch_size - 1, n))
+      i <<- i + length(ridx)
+    }
+    if (!is.null(x)) {
+      xsub <- x[ridx, , drop = FALSE]
+    } else {
+      xsub <- NULL
+    }
+    imsub <- ontram:::.batch_subset(im, ridx, dim = dim(im))
+
+    xret <- .inp(mod = mod, im = imsub, x = xsub)
+    yret <- y[ridx, , drop = FALSE]
+    ret <- list(xret, yret)
+    return(ret)
+  }
+}
+
+.inp <- function(mod = c("silscs", "sics", "cils", "ci"),
+                 im, x = NULL) {
+  mod <- match.arg(mod)
+  n <- nrow(im)
+  one <- matrix(1, nrow = n)
+
+  if (mod == "silscs") {
+    ret <- list(one, x, im)
+  } else if (mod == "sics") {
+    ret <- list(one, im)
+  } else if (mod == "cils") {
+    ret <- list(im, x)
+  } else if (mod == "ci") {
+    ret <- list(im, one)
+  }
+  return(ret)
+}
+

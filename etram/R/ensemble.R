@@ -12,7 +12,7 @@
 #' \code{Polr} or \code{glm} model (depending on the response type).
 #' @param augment logical. Whether to perform 2D image augmentation during training.
 #' @param aug_params parameters used for image augmentation.
-#' @param fit_batchwise logical. If \code{TRUE} model is trained batchwise (used to save memory).
+#' @param train_batchwise logical. If \code{TRUE} model is trained batchwise (used to save memory).
 #' @param out_dir directory to save results.
 #' @param fname unique file name.
 #' @export
@@ -149,17 +149,22 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
             save_k_hist(h, hpath)
             load_model_weights_hdf5(m, mpath)
           } else if (train_batchwise) {
-            im_gen <- image_data_generator() # no augmentation per default
-            h <- fit_generator(m,
-                               x = inp_train, y = y_train,
-                               validation_data = list(inp_val, y_val),
-                               steps_per_epoch = ceiling(nrow(y_train)/bs),
-                               validation_steps = ceiling(nrow(y_val)/bs),
-                               shuffle = TRUE, batch_size = bs, epochs = epochs,
-                               callbacks = list(callback_model_checkpoint(mpath,
-                                                                          monitor = "val_loss",
-                                                                          save_best_only = TRUE,
-                                                                          save_weights_only = TRUE)),
+            gen_train <- generator(mod = mod, im = im_train, x = x_train, y = y_train,
+                                   batch_size = bs,
+                                   shuffle = TRUE)
+            gen_val <- generator(mod = mod, im = im_val, x = x_val, y = y_val,
+                                 batch_size = bs,
+                                 shuffle = TRUE)
+            h <- fit(m,
+                     x = gen_train,
+                     validation_data = gen_val,
+                     epochs = epochs,
+                     steps_per_epoch = ceiling(nrow(y_train)/bs),
+                     validation_steps = ceiling(nrow(y_val)/bs),
+                     callbacks = list(callback_model_checkpoint(mpath,
+                                                                monitor = "val_loss",
+                                                                save_best_only = TRUE,
+                                                                save_weights_only = TRUE)),
                      view_metrics = FALSE)
             save_k_hist(h, hpath)
             load_model_weights_hdf5(m, mpath)
@@ -246,7 +251,7 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
           write.csv(lor, file = lorpath, row.names = FALSE)
         }
         gc() # garbage collection
-        rm(m, f, h)
+        rm(m, h)
       }
     } else if (mod %in% c("si", "sils")) {
 

@@ -46,11 +46,11 @@ Arguments \code{input_shape}, \code{output_shape} and \code{mbl} are required (s
 
 \item{aug_params}{parameters used for image augmentation.}
 
+\item{train_batchwise}{logical. If \code{TRUE} model is trained batchwise (used to save memory).}
+
 \item{out_dir}{directory to save results.}
 
 \item{fname}{unique file name.}
-
-\item{fit_batchwise}{logical. If \code{TRUE} model is trained batchwise (used to save memory).}
 }
 \description{
 Depending on the model and response type a \code{k_ontram}, \code{Polr} or \code{glm} model is fit.
