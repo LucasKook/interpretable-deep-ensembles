@@ -161,11 +161,11 @@ warm_mod <- function(m, mod = c("silscs", "sics", "cils"), x = NULL, y, binary =
     df$y <- factor(df$y, levels = c(1, 2))
     if (mod %in% c("silscs", "cils")) {
       mg <- glm(y ~ ., family = "binomial", data = df)
-      betas <- coef(mg)[2:length(coef(mg))]
+      betas <- -1 * coef(mg)[2:length(coef(mg))]
     } else if (mod == "sics") {
       mg <- glm(y ~ 1, family = "binomial", data = df)
     }
-    thetas <- coef(mg)[1L]
+    thetas <- -coef(mg)[1L]
   }
 
   if (mod == "silscs") {
