@@ -7,6 +7,7 @@ set.seed(123)
 # Dependencies ------------------------------------------------------------
 
 library(tram)
+library(etram)
 library(tidyverse)
 library(patchwork)
 theme_set(theme_bw())
@@ -31,10 +32,9 @@ get_trafos <- function(dgp) {
                                                        support = range(tdat$y))))
 
   # Classical ensemble trafo
-  CE <- qnorm(colMeans(do.call("rbind", lapply(mods, predict, newdata = tdat,
-                                               type = "distribution"))))
-  nd <- data.frame(y = seq(min(tdat$y), max(tdat$y), length.out = 1e3),
-                   x = 0)
+  lcdf <- lapply(mods, predict, newdata = tdat, type = "distribution")
+  CE <- qnorm(get_ensemble(lcdf, "linear"))
+  nd <- data.frame(y = seq(min(tdat$y), max(tdat$y), length.out = 1e3), x = 0)
   trafos <- do.call("cbind", lapply(mods, predict, newdata = nd))
 
   ndd <- data.frame(x = seq(min(tdat$x), max(tdat$x), length.out = 1e3))
