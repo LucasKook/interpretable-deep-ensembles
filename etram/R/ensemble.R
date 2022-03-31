@@ -212,11 +212,11 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
 
         #### CDFs
 
-        cdf_train <- as.data.frame(predict(m, x = inp_train, type = "distribution"))
+        cdf_train <- as.data.frame(predict(m, x = inp_train, type = "distribution", batch_size = bs))
         rownames(cdf_train) <- rtrain
-        cdf_val <- as.data.frame(predict(m, x = inp_val, type = "distribution"))
+        cdf_val <- as.data.frame(predict(m, x = inp_val, type = "distribution", batch_size = bs))
         rownames(cdf_val) <- rval
-        cdf_test <- as.data.frame(predict(m, x = inp_test, type = "distribution"))
+        cdf_test <- as.data.frame(predict(m, x = inp_test, type = "distribution", batch_size = bs))
         rownames(cdf_test) <- rtest
         write.csv(cdf_train, file = ctrainpath)
         write.csv(cdf_val, file = cvalpath)
@@ -224,11 +224,11 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
 
         #### Trafo (theta - xB - eta(B))
 
-        trafo_train <- as.data.frame(predict(m, x = inp_train, type = "trafo"))
+        trafo_train <- as.data.frame(predict(m, x = inp_train, type = "trafo", batch_size = bs))
         rownames(trafo_train) <- rtrain
-        trafo_val <- as.data.frame(predict(m, x = inp_val, type = "trafo"))
+        trafo_val <- as.data.frame(predict(m, x = inp_val, type = "trafo", batch_size = bs))
         rownames(trafo_val) <- rval
-        trafo_test <- as.data.frame(predict(m, x = inp_test, type = "trafo"))
+        trafo_test <- as.data.frame(predict(m, x = inp_test, type = "trafo", batch_size = bs))
         rownames(trafo_test) <- rtest
         write.csv(trafo_train, file = ttrainpath)
         write.csv(trafo_val, file = tvalpath)
@@ -236,11 +236,11 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
 
         #### Raw (theta, xB - eta(B))
 
-        raw_train <- as.data.frame(predict(m, x = inp_train, type = "terms"))
+        raw_train <- as.data.frame(predict(m, x = inp_train, type = "terms", batch_size = bs))
         rownames(raw_train) <- rtrain
-        raw_val <- as.data.frame(predict(m, x = inp_val, type = "terms"))
+        raw_val <- as.data.frame(predict(m, x = inp_val, type = "terms", batch_size = bs))
         rownames(raw_val) <- rval
-        raw_test <- as.data.frame(predict(m, x = inp_test, type = "terms"))
+        raw_test <- as.data.frame(predict(m, x = inp_test, type = "terms", batch_size = bs))
         rownames(raw_test) <- rtest
         write.csv(raw_train, file = rtrainpath)
         write.csv(raw_val, file = rvalpath)
