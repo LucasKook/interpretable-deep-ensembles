@@ -57,6 +57,7 @@ load_data <- function(which = c("mnist", "stroke", "utkface", "melanoma"), path 
     m <- mean(tab_dat$age_approx)
     s <- sd(tab_dat$age_approx)
     tab_dat$age_s = (tab_dat$age_approx - m)/(s + 1e-12)
+    tab_dat <- as.data.frame(tab_dat)
     image_size <- 128L
     im <- array(dim = c(nrow(tab_dat), image_size, image_size, 3L))
     for (i in seq_len(nrow(tab_dat))) {
