@@ -51,6 +51,12 @@ load_data <- function(which = c("mnist", "stroke", "utkface", "melanoma"), path 
   } else if (which == "melanoma") {
     tab_dat <- read_csv(path) %>%
       mutate(target = factor(target))
+    tab_dat <- tab_dat[!is.na(tab_dat$age_approx), ] # exclude missings
+    tab_dat$target <- ordered(tab_dat$target, levels = 0:1)
+    # standardization
+    m <- mean(tab_dat$age_approx)
+    s <- sd(tab_dat$age_approx)
+    tab_dat$age_s = (tab_dat$age_approx - m)/(s + 1e-12)
     image_size <- 128L
     im <- array(dim = c(nrow(tab_dat), image_size, image_size, 3L))
     for (i in seq_len(nrow(tab_dat))) {
