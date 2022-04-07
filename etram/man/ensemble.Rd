@@ -13,6 +13,7 @@ ensemble(
   splits = 6,
   ensembles = 5,
   single_split = NULL,
+  single_ens = NULL,
   nn = NULL,
   input_shape = NULL,
   bs = 1,
@@ -37,7 +38,9 @@ ensemble(
 
 \item{ridx}{row indices used for each split (output from \code{get_ridx}).}
 
-\item{single_split}{numeric. Number of split that should be fitted.
+\item{single_split}{numeric. Number of split that should be fitted.}
+
+\item{single_ens}{numeric. Number of ensemble member that should be fitted.
 Arguments \code{input_shape}, \code{output_shape} and \code{mbl} are required (see \code{\link{cnn_stroke}} for an example).}
 
 \item{nn}{function to build neural network used for modeling complex intercept or complex shift term.}

@@ -8,6 +8,7 @@
 #' @param ridx row indices used for each split (output from \code{get_ridx}).
 #' @param nn function to build neural network used for modeling complex intercept or complex shift term.
 #' @param single_split numeric. Number of split that should be fitted.
+#' @param single_ens numeric. Number of ensemble member that should be fitted.
 #' Arguments \code{input_shape}, \code{output_shape} and \code{mbl} are required (see \code{\link{cnn_stroke}} for an example).
 #' @param ws logical. Whether to initialize simple intercept and linear shift terms using the parameters estimated by a
 #' \code{Polr} or \code{glm} model (depending on the response type).
@@ -18,7 +19,7 @@
 #' @param fname unique file name.
 #' @export
 ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml, tab_dat, im = NULL, ridx,
-                     splits = 6, ensembles = 5, single_split = NULL,
+                     splits = 6, ensembles = 5, single_split = NULL, single_ens = NULL,
                      nn = NULL, input_shape = NULL,
                      bs = 1, lr = 5e-5, optimizer = optimizer_adam(learning_rate = lr), epochs = 10,
                      loss = c("nll", "rps"),
@@ -60,13 +61,13 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
   y <- model.matrix(fmly, data = mfy)
 
   if (is.null(single_split)) {
-    start <- 1
-    end <- splits
+    start_spl <- 1
+    end_spl <- splits
   } else {
-    start <- end <- single_split
+    start_spl <- end_spl <- single_split
   }
 
-  for (spl in start:end) {
+  for (spl in start_spl:end_spl) {
 
     ### Train, test, validation set for current split ###
 
@@ -106,7 +107,14 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
 
     if (!(mod %in% c("si", "sils"))) {
 
-      for (ens in seq_len(ensembles)) {
+      if (is.null(single_ens)) {
+        start_ens <- 1
+        end_ens <- ensembles
+      } else {
+        start_ens <- end_ens <- single_ens
+      }
+
+      for (ens in start_ens:end_ens) {
         message("Split: ", spl, ", Ensemble: ", ens)
         k_clear_session()
 
