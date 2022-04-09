@@ -436,7 +436,7 @@ get_brier <- function(cdf, y_true, cutoff = 3) {
 #'                               0, 1, 0,
 #'                               0, 0, 1),
 #'                             nrow = 3, byrow = T))
-#' get_avg_brier(lys_cdf = lys_cdf, y_true = y_true)
+#' get_avg_brier(lys_cdf = lys_cdf, y_true = y_true, cutoff = 2)
 #' @export
 get_avg_brier <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)

@@ -26,5 +26,5 @@ y_true <- data.frame(matrix(c(0, 1, 0,
                               0, 1, 0,
                               0, 0, 1),
                             nrow = 3, byrow = T))
-get_avg_brier(lys_cdf = lys_cdf, y_true = y_true)
+get_avg_brier(lys_cdf = lys_cdf, y_true = y_true, cutoff = 2)
 }
