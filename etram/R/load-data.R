@@ -23,7 +23,8 @@ load_data <- function(which = c("mnist", "stroke", "utkface", "melanoma"), path 
       left_join(pat, .) %>%
       mutate(mrs3 = ordered(mrs3, levels = 0:6),
              mrs_before = factor(mrs_before, levels = unique(na.omit(mrs_before)),
-                                 labels = 0:4))
+                                 labels = 0:4),
+             mrs3_unfavorable = factor(ifelse(mrs3 <= "2", 0, 1), ordered = TRUE))
     tab_dat <- tab_dat[complete.cases(tab_dat), ]
     im <- ontram:::.batch_subset(im, as.numeric(row.names(tab_dat)), dim(im))
     ret <- list(tab_dat = tab_dat,
