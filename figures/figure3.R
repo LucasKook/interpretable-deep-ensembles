@@ -16,6 +16,8 @@ theme_set(theme_bw())
 
 tn <- 150
 n_mods <- 5
+cols <- colorspace::qualitative_hcl(n = 3, l = 40)
+names(cols) <- c("LIN", "LOG", "TRF")
 
 # FUNs --------------------------------------------------------------------
 
