@@ -31,7 +31,7 @@ layout(matrix(c(1,2,2,2,
                 3,4,4,4,
                 3,4,4,4), nrow = 4, ncol = 4, byrow = TRUE))
 
-cols <- colorRampPalette(c("cornflowerblue", "orange"))(res)
+cols <- colorspace::diverge_hcl(res)
 tcx <- 1
 
 plot.new()
