@@ -133,9 +133,9 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
                        y_dim = K, x_dim = ncol(x_train),
                        nn = nn, input_shape = input_shape)
         if (ws) {
-          if (mod %in% c("silscs", "sics", "cils")) {
+          if (mod %in% c("silscs", "sics", "cils", "ci")) {
             m <- warm_mod(m, mod = mod, x = x_train, y = y_train, binary = binary)
-          } else if (mod %in% c("ci", "si", "sils")) {
+          } else if (mod %in% c("si", "sils")) {
             message("Warmstart not possible for this model type")
           }
         }

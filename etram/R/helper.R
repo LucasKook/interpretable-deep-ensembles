@@ -143,7 +143,7 @@ get_model <- function(mod = c("silscs", "sics", "cils", "ci"),
 #' get_weights(m$mod_baseline)
 #' get_weights(m$list_of_shift_models[[0]])
 #' @export
-warm_mod <- function(m, mod = c("silscs", "sics", "cils"), x = NULL, y, binary = FALSE) {
+warm_mod <- function(m, mod = c("silscs", "sics", "cils", "ci"), x = NULL, y, binary = FALSE) {
   mod <- match.arg(mod)
   K <- ncol(y)
   y <- apply(y, 1, which.max)
@@ -153,7 +153,7 @@ warm_mod <- function(m, mod = c("silscs", "sics", "cils"), x = NULL, y, binary =
     if (mod %in% c("silscs", "cils")) {
       mp <- Polr(y ~ ., data = df)
       betas <- coef(mp)
-    } else if (mod == "sics") {
+    } else if (mod %in% c("sics", "ci")) {
       mp <- Polr(y ~ 1, data = df)
     }
     thetas <- coef(mp, with_baseline = TRUE)[1:(K - 1)]
@@ -162,18 +162,16 @@ warm_mod <- function(m, mod = c("silscs", "sics", "cils"), x = NULL, y, binary =
     if (mod %in% c("silscs", "cils")) {
       mg <- glm(y ~ ., family = "binomial", data = df)
       betas <- coef(mg)[2:length(coef(mg))]
-    } else if (mod == "sics") {
+    } else if (mod %in% c("sics", "ci")) {
       mg <- glm(y ~ 1, family = "binomial", data = df)
     }
     thetas <- -coef(mg)[1L]
   }
 
-  if (mod == "silscs") {
-    mw <- warmstart(m, thetas = thetas, betas = betas, which = "all")
-  } else if (mod == "sics") {
-    mw <- warmstart(m, thetas = thetas, which = "baseline only")
-  } else if (mod == "cils") {
-    mw <- warmstart(m, betas = betas, which = "shift only")
+  if (mod %in% c("silscs", "cils")) {
+    mw <- warmstart(m, thetas = thetas, betas = betas, which = "all") # also ci from cils
+  } else if (mod %in% c("sics", "ci")) {
+    mw <- warmstart(m, thetas = thetas, which = "baseline only") # add ci
   }
   return(mw)
 }

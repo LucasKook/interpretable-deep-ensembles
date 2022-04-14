@@ -4,7 +4,13 @@
 \alias{warm_mod}
 \title{Initialize weights for simple intercept and linear shift term}
 \usage{
-warm_mod(m, mod = c("silscs", "sics", "cils"), x = NULL, y, binary = FALSE)
+warm_mod(
+  m,
+  mod = c("silscs", "sics", "cils", "ci"),
+  x = NULL,
+  y,
+  binary = FALSE
+)
 }
 \description{
 Initialize weights for simple intercept and linear shift term
