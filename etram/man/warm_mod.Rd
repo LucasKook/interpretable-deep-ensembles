@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{warm_mod}
 \alias{warm_mod}
-\title{Initialize weights for simple intercept and linear shift term}
+\title{Initialize weights for simple or complex intercept and linear shift terms}
 \usage{
 warm_mod(
   m,
@@ -13,7 +13,7 @@ warm_mod(
 )
 }
 \description{
-Initialize weights for simple intercept and linear shift term
+Initialize weights for simple or complex intercept and linear shift terms
 }
 \examples{
 set.seed(2022)

@@ -109,7 +109,7 @@ get_model <- function(mod = c("silscs", "sics", "cils", "ci"),
   return(m)
 }
 
-#' Initialize weights for simple intercept and linear shift term
+#' Initialize weights for simple or complex intercept and linear shift terms
 #' @examples
 #' set.seed(2022)
 #' nn <- function(output_shape = NULL, mbl = FALSE, input_shape = dim(im)[2:4], ...) {

@@ -1,5 +1,5 @@
 
-#' Perform ensembling experiment
+#' Perform random split experiment
 #' @description Depending on the model and response type a \code{k_ontram}, \code{Polr} or \code{glm} model is fit.
 #' The function handles ordinal and binary responses.
 #' @param fml model formula (e.g. \code{y ~ 1} for fitting a CI model).
@@ -8,8 +8,6 @@
 #' @param ridx row indices used for each split (output from \code{get_ridx}).
 #' @param nn function to build neural network used for modeling complex intercept or complex shift term.
 #' Arguments \code{input_shape}, \code{output_shape} and \code{mbl} are required (see \code{\link{cnn_stroke}} for an example).
-#' @param single_split numeric. Number of split that should be fitted.
-#' @param single_ens numeric. Number of ensemble member that should be fitted.
 #' @param ws logical. Whether to initialize intercepts (simple and complex) and linear shift terms using the parameters estimated by a
 #' \code{Polr} or \code{glm} model (depending on the response type).
 #' @param augment logical. Whether to perform 2D image augmentation during training.
@@ -18,21 +16,19 @@
 #' @param out_dir directory to save results.
 #' @param fname unique file name.
 #' @export
-ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml, tab_dat, im = NULL, ridx,
-                     splits = 6, ensembles = 5, single_split = NULL, single_ens = NULL,
-                     nn = NULL, input_shape = NULL,
-                     bs = 1, lr = 5e-5, optimizer = optimizer_adam(learning_rate = lr), epochs = 10,
-                     loss = c("nll", "rps"),
-                     ws = FALSE, augment = FALSE, aug_params = list(rotation_range = 20,
-                                                                    width_shift_range = 0.2,
-                                                                    height_shift_range = 0.2,
-                                                                    zoom_range = 0.15,
-                                                                    shear_range = 0.15,
-                                                                    fill_mode = "nearest"),
-                     train_batchwise = FALSE,
-                     out_dir, fname) {
+fit_randomsplits <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml, tab_dat, im = NULL, ridx,
+                             splits = 6, nn = NULL, input_shape = NULL,
+                             bs = 1, lr = 5e-5, optimizer = optimizer_adam(learning_rate = lr), epochs = 10,
+                             loss = c("nll", "rps"),
+                             ws = FALSE, augment = FALSE, aug_params = list(rotation_range = 20,
+                                                                            width_shift_range = 0.2,
+                                                                            height_shift_range = 0.2,
+                                                                            zoom_range = 0.15,
+                                                                            shear_range = 0.15,
+                                                                            fill_mode = "nearest"),
+                             train_batchwise = FALSE,
+                             out_dir, fname) {
 
-  # stopifnot(nrow(ridx) == (splits * nrow(tab_dat)))
   if (!dir.exists(out_dir)) {
     dir.create(out_dir)
   }
@@ -60,14 +56,9 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
   mfy <- model.frame(fmly, data = tab_dat)
   y <- model.matrix(fmly, data = mfy)
 
-  if (is.null(single_split)) {
-    start_spl <- 1
-    end_spl <- splits
-  } else {
-    start_spl <- end_spl <- single_split
-  }
-
-  for (spl in start_spl:end_spl) {
+  for (spl in 1:splits) {
+    message("Split: ", spl)
+    k_clear_session()
 
     ### Train, test, validation set for current split ###
 
@@ -96,191 +87,174 @@ ensemble <- function(mod = c("silscs", "sics", "cils", "ci", "si", "sils"), fml,
     K <- sum(colSums(y_train) != 0)
     binary <- K == 2
 
-    if (binary) { # otherwise if subset of ordinal response ncol(y) == K
+    if (binary) { # otherwise if subset of ordinal response (to test function) ncol(y) == K
       classes <- which(colSums(y_train) != 0)
       y_train <- y_train[, classes, drop = FALSE]
       y_val <- y_val[, classes, drop = FALSE]
       y_test <- y_test[, classes, drop = FALSE]
     }
 
-    ### Fit ensembles ###
+    ### Paths to save results
+
+    ctrainpath <- paste0(out_dir, fname, "_cdftrain_spl", spl, ".csv")
+    cvalpath <- paste0(out_dir, fname, "_cdfval_spl", spl, ".csv")
+    ctestpath <- paste0(out_dir, fname, "_cdftest_spl", spl, ".csv")
+    ttrainpath <- paste0(out_dir, fname, "_trafotrain_spl", spl, ".csv")
+    tvalpath <- paste0(out_dir, fname, "_trafoval_spl", spl, ".csv")
+    ttestpath <- paste0(out_dir, fname, "_trafotest_spl", spl, ".csv")
+    rtrainpath <- paste0(out_dir, fname, "_rawtrain_spl", spl, ".csv")
+    rvalpath <- paste0(out_dir, fname, "_rawval_spl", spl, ".csv")
+    rtestpath <- paste0(out_dir, fname, "_rawtest_spl", spl, ".csv")
+    lorpath <- paste0(out_dir, fname, "_lor_spl", spl, ".csv")
+
+    ### Fit model ###
 
     if (!(mod %in% c("si", "sils"))) {
 
-      if (is.null(single_ens)) {
-        start_ens <- 1
-        end_ens <- ensembles
-      } else {
-        start_ens <- end_ens <- single_ens
+      message("Split: ", spl, ", Ensemble: ", ens)
+      k_clear_session()
+
+      ### Prepare input ###
+
+      inp <- get_input(mod = mod,
+                       x_train = x_train, x_val = x_val, x_test = x_test,
+                       im_train = im_train, im_val = im_val, im_test = im_test)
+      inp_train <- inp$inp_train
+      inp_val <- inp$inp_val
+      inp_test <- inp$inp_test
+
+      ### Prepare model ###
+
+      m <- get_model(mod = mod,
+                     y_dim = K, x_dim = ncol(x_train),
+                     nn = nn, input_shape = input_shape)
+      if (ws) {
+        if (mod %in% c("silscs", "sics", "cils", "ci")) {
+          m <- warm_mod(m, mod = mod, x = x_train, y = y_train, binary = binary)
+        } else if (mod %in% c("si", "sils")) {
+          message("Warmstart not possible for this model type")
+        }
       }
+      if (loss == "rps") {
+        l <- k_ontram_rps(K)
+      } else if (loss == "nll") {
+        l <- k_ontram_loss(K)
+      }
+      m <- compile(m, optimizer = optimizer, loss = l)
 
-      for (ens in start_ens:end_ens) {
-        message("Split: ", spl, ", Ensemble: ", ens)
-        k_clear_session()
+      ### Fit model ###
 
-        ### Prepare input ###
+      mpath <- paste0(m_dir, fname, "_m_spl", spl, ".hdf5")
+      hpath <- paste0(out_dir, fname, "_hist_spl", spl, ".csv")
 
-        inp <- get_input(mod = mod,
-                         x_train = x_train, x_val = x_val, x_test = x_test,
-                         im_train = im_train, im_val = im_val, im_test = im_test)
-        inp_train <- inp$inp_train
-        inp_val <- inp$inp_val
-        inp_test <- inp$inp_test
-
-        ### Prepare model ###
-
-        m <- get_model(mod = mod,
-                       y_dim = K, x_dim = ncol(x_train),
-                       nn = nn, input_shape = input_shape)
-        if (ws) {
-          if (mod %in% c("silscs", "sics", "cils", "ci")) {
-            m <- warm_mod(m, mod = mod, x = x_train, y = y_train, binary = binary)
-          } else if (mod %in% c("si", "sils")) {
-            message("Warmstart not possible for this model type")
-          }
-        }
-        if (loss == "rps") {
-          l <- k_ontram_rps(K)
-        } else if (loss == "nll") {
-          l <- k_ontram_loss(K)
-        }
-        m <- compile(m, optimizer = optimizer, loss = l)
-
-        ### Fit model ###
-
-        mpath <- paste0(m_dir, fname, "_m_spl", spl, "_ens", ens, ".hdf5")
-        hpath <- paste0(out_dir, fname, "_hist_spl", spl, "_ens", ens, ".csv")
-
-        if (!augment) {
-          if (!train_batchwise) {
-            h <- fit(m,
-                     x = inp_train, y = y_train,
-                     validation_data = list(inp_val, y_val),
-                     shuffle = TRUE, batch_size = bs, epochs = epochs,
-                     callbacks = list(callback_model_checkpoint(mpath,
-                                                                monitor = "val_loss",
-                                                                save_best_only = TRUE,
-                                                                save_weights_only = TRUE)),
-                     view_metrics = FALSE)
-            save_k_hist(h, hpath)
-            load_model_weights_hdf5(m, mpath)
-          } else if (train_batchwise) {
-            gen_train <- generator(mod = mod, im = im_train, x = x_train, y = y_train,
-                                   batch_size = bs,
-                                   shuffle = TRUE)
-            gen_val <- generator(mod = mod, im = im_val, x = x_val, y = y_val,
+      if (!augment) {
+        if (!train_batchwise) {
+          h <- fit(m,
+                   x = inp_train, y = y_train,
+                   validation_data = list(inp_val, y_val),
+                   shuffle = TRUE, batch_size = bs, epochs = epochs,
+                   callbacks = list(callback_model_checkpoint(mpath,
+                                                              monitor = "val_loss",
+                                                              save_best_only = TRUE,
+                                                              save_weights_only = TRUE)),
+                   view_metrics = FALSE)
+          save_k_hist(h, hpath)
+          load_model_weights_hdf5(m, mpath)
+        } else if (train_batchwise) {
+          gen_train <- generator(mod = mod, im = im_train, x = x_train, y = y_train,
                                  batch_size = bs,
                                  shuffle = TRUE)
-            h <- fit(m,
-                     x = gen_train,
-                     validation_data = gen_val,
-                     epochs = epochs,
-                     steps_per_epoch = ceiling(nrow(y_train)/bs),
-                     validation_steps = ceiling(nrow(y_val)/bs),
-                     callbacks = list(callback_model_checkpoint(mpath,
-                                                                monitor = "val_loss",
-                                                                save_best_only = TRUE,
-                                                                save_weights_only = TRUE)),
-                     view_metrics = FALSE)
-            save_k_hist(h, hpath)
-            load_model_weights_hdf5(m, mpath)
-          }
-
-        } else if (augment) {
-          im_gen <- do.call(image_data_generator, aug_params)
-          if (mod %in% c("cils", "ci")) {
-            mim_as_mbl <- TRUE
-          } else {
-            mim_as_mbl <- FALSE
-          }
-          f <- fit_k_ontram_augmented_data(m,
-                                           im_train = im_train, im_val = im_val,
-                                           x_train = x_train, x_val = x_val,
-                                           y_train = y_train, y_val = y_val,
-                                           generator = im_gen, epochs = epochs, bs = bs,
-                                           mim_as_mbl = mim_as_mbl,
-                                           patience = 1, filepath = mpath)
-          h <- f$hist
+          gen_val <- generator(mod = mod, im = im_val, x = x_val, y = y_val,
+                               batch_size = bs,
+                               shuffle = TRUE)
+          h <- fit(m,
+                   x = gen_train,
+                   validation_data = gen_val,
+                   epochs = epochs,
+                   steps_per_epoch = ceiling(nrow(y_train)/bs),
+                   validation_steps = ceiling(nrow(y_val)/bs),
+                   callbacks = list(callback_model_checkpoint(mpath,
+                                                              monitor = "val_loss",
+                                                              save_best_only = TRUE,
+                                                              save_weights_only = TRUE)),
+                   view_metrics = FALSE)
           save_k_hist(h, hpath)
           load_model_weights_hdf5(m, mpath)
         }
 
-        ### Evaluate model ###
-
-        ctrainpath <- paste0(out_dir, fname, "_cdftrain_spl", spl, "_ens", ens, ".csv")
-        cvalpath <- paste0(out_dir, fname, "_cdfval_spl", spl, "_ens", ens, ".csv")
-        ctestpath <- paste0(out_dir, fname, "_cdftest_spl", spl, "_ens", ens, ".csv")
-        ttrainpath <- paste0(out_dir, fname, "_trafotrain_spl", spl, "_ens", ens, ".csv")
-        tvalpath <- paste0(out_dir, fname, "_trafoval_spl", spl, "_ens", ens, ".csv")
-        ttestpath <- paste0(out_dir, fname, "_trafotest_spl", spl, "_ens", ens, ".csv")
-        rtrainpath <- paste0(out_dir, fname, "_rawtrain_spl", spl, "_ens", ens, ".csv")
-        rvalpath <- paste0(out_dir, fname, "_rawval_spl", spl, "_ens", ens, ".csv")
-        rtestpath <- paste0(out_dir, fname, "_rawtest_spl", spl, "_ens", ens, ".csv")
-        lorpath <- paste0(out_dir, fname, "_lor_spl", spl, "_ens", ens, ".csv")
-
-        #### CDFs
-
-        cdf_train <- as.data.frame(predict(m, x = inp_train, type = "distribution", batch_size = bs))
-        rownames(cdf_train) <- rtrain
-        cdf_val <- as.data.frame(predict(m, x = inp_val, type = "distribution", batch_size = bs))
-        rownames(cdf_val) <- rval
-        cdf_test <- as.data.frame(predict(m, x = inp_test, type = "distribution", batch_size = bs))
-        rownames(cdf_test) <- rtest
-        write.csv(cdf_train, file = ctrainpath)
-        write.csv(cdf_val, file = cvalpath)
-        write.csv(cdf_test, file = ctestpath)
-
-        #### Trafo (theta - xB - eta(B))
-
-        trafo_train <- as.data.frame(predict(m, x = inp_train, type = "trafo", batch_size = bs))
-        rownames(trafo_train) <- rtrain
-        trafo_val <- as.data.frame(predict(m, x = inp_val, type = "trafo", batch_size = bs))
-        rownames(trafo_val) <- rval
-        trafo_test <- as.data.frame(predict(m, x = inp_test, type = "trafo", batch_size = bs))
-        rownames(trafo_test) <- rtest
-        write.csv(trafo_train, file = ttrainpath)
-        write.csv(trafo_val, file = tvalpath)
-        write.csv(trafo_test, file = ttestpath)
-
-        #### Raw (theta, xB - eta(B))
-
-        raw_train <- as.data.frame(predict(m, x = inp_train, type = "terms", batch_size = bs))
-        rownames(raw_train) <- rtrain
-        raw_val <- as.data.frame(predict(m, x = inp_val, type = "terms", batch_size = bs))
-        rownames(raw_val) <- rval
-        raw_test <- as.data.frame(predict(m, x = inp_test, type = "terms", batch_size = bs))
-        rownames(raw_test) <- rtest
-        write.csv(raw_train, file = rtrainpath)
-        write.csv(raw_val, file = rvalpath)
-        write.csv(raw_test, file = rtestpath)
-
-        #### Log odds ratios
-
-        if (mod %in% c("silscs", "cils")) {
-          if (mod == "silscs") {
-            lor <- as.data.frame(t(unlist(get_weights(m$list_of_shift_models[[0]]))))
-            colnames(lor) <- colnames(x_train)
-          } else if (mod == "cils") {
-            lor <- as.data.frame(t(unlist(get_weights(m$list_of_shift_models))))
-            colnames(lor) <- colnames(x_train)
-          }
-          write.csv(lor, file = lorpath, row.names = FALSE)
+      } else if (augment) {
+        im_gen <- do.call(image_data_generator, aug_params)
+        if (mod %in% c("cils", "ci")) {
+          mim_as_mbl <- TRUE
+        } else {
+          mim_as_mbl <- FALSE
         }
-        gc() # garbage collection
-        rm(m, h)
+        f <- fit_k_ontram_augmented_data(m,
+                                         im_train = im_train, im_val = im_val,
+                                         x_train = x_train, x_val = x_val,
+                                         y_train = y_train, y_val = y_val,
+                                         generator = im_gen, epochs = epochs, bs = bs,
+                                         mim_as_mbl = mim_as_mbl,
+                                         patience = 1, filepath = mpath)
+        h <- f$hist
+        save_k_hist(h, hpath)
+        load_model_weights_hdf5(m, mpath)
       }
-    } else if (mod %in% c("si", "sils")) {
 
-      ctrainpath <- paste0(out_dir, fname, "_cdftrain_spl", spl, ".csv")
-      cvalpath <- paste0(out_dir, fname, "_cdfval_spl", spl, ".csv")
-      ctestpath <- paste0(out_dir, fname, "_cdftest_spl", spl, ".csv")
-      ttrainpath <- paste0(out_dir, fname, "_trafotrain_spl", spl, ".csv")
-      tvalpath <- paste0(out_dir, fname, "_trafoval_spl", spl, ".csv")
-      ttestpath <- paste0(out_dir, fname, "_trafotest_spl", spl, ".csv")
-      rtrainpath <- paste0(out_dir, fname, "_rawtrain_spl", spl, ".csv")
-      rvalpath <- paste0(out_dir, fname, "_rawval_spl", spl, ".csv")
-      rtestpath <- paste0(out_dir, fname, "_rawtest_spl", spl, ".csv")
-      lorpath <- paste0(out_dir, fname, "_lor_spl", spl, ".csv")
+      ### Evaluate model ###
+
+      #### CDFs
+
+      cdf_train <- as.data.frame(predict(m, x = inp_train, type = "distribution", batch_size = bs))
+      rownames(cdf_train) <- rtrain
+      cdf_val <- as.data.frame(predict(m, x = inp_val, type = "distribution", batch_size = bs))
+      rownames(cdf_val) <- rval
+      cdf_test <- as.data.frame(predict(m, x = inp_test, type = "distribution", batch_size = bs))
+      rownames(cdf_test) <- rtest
+      write.csv(cdf_train, file = ctrainpath)
+      write.csv(cdf_val, file = cvalpath)
+      write.csv(cdf_test, file = ctestpath)
+
+      #### Trafo (theta - xB - eta(B))
+
+      trafo_train <- as.data.frame(predict(m, x = inp_train, type = "trafo", batch_size = bs))
+      rownames(trafo_train) <- rtrain
+      trafo_val <- as.data.frame(predict(m, x = inp_val, type = "trafo", batch_size = bs))
+      rownames(trafo_val) <- rval
+      trafo_test <- as.data.frame(predict(m, x = inp_test, type = "trafo", batch_size = bs))
+      rownames(trafo_test) <- rtest
+      write.csv(trafo_train, file = ttrainpath)
+      write.csv(trafo_val, file = tvalpath)
+      write.csv(trafo_test, file = ttestpath)
+
+      #### Raw (theta, xB - eta(B))
+
+      raw_train <- as.data.frame(predict(m, x = inp_train, type = "terms", batch_size = bs))
+      rownames(raw_train) <- rtrain
+      raw_val <- as.data.frame(predict(m, x = inp_val, type = "terms", batch_size = bs))
+      rownames(raw_val) <- rval
+      raw_test <- as.data.frame(predict(m, x = inp_test, type = "terms", batch_size = bs))
+      rownames(raw_test) <- rtest
+      write.csv(raw_train, file = rtrainpath)
+      write.csv(raw_val, file = rvalpath)
+      write.csv(raw_test, file = rtestpath)
+
+      #### Log odds ratios
+
+      if (mod %in% c("silscs", "cils")) {
+        if (mod == "silscs") {
+          lor <- as.data.frame(t(unlist(get_weights(m$list_of_shift_models[[0]]))))
+          colnames(lor) <- colnames(x_train)
+        } else if (mod == "cils") {
+          lor <- as.data.frame(t(unlist(get_weights(m$list_of_shift_models))))
+          colnames(lor) <- colnames(x_train)
+        }
+        write.csv(lor, file = lorpath, row.names = FALSE)
+      }
+      gc() # garbage collection
+      rm(m, h)
+
+    } else if (mod %in% c("si", "sils")) {
 
       #### Prepare data sets to fit Polr and GLM
 
