@@ -333,18 +333,18 @@ get_cal_perclass <- function(cdf, y_true) {
   cdf <- as.matrix(cdf)
   K <- ncol(y_true)
   pdf <- t(apply(cbind(0, cdf), 1, diff))
-  pdf[pdf == 0] <- 1e-20
   cint <- numeric(K-1)
   cslope <- numeric(K-1)
   for (cl in seq_len(K-1)) {
     yt <- apply(y_true, 1, function(x) sum(x[1:cl]))
-    yp <- apply(pdf, 1, function(x) sum(x[1:cl]))
-    yp[yp == 1] <- 0.999
+    yp <- 1 - apply(pdf, 1, function(x) sum(x[1:cl]))
+    yp[yp == 1] <- 0.9999
+    yp[yp == 0] <- 1e-20
     logits <- qlogis(yp)
     df <- as.data.frame(cbind(y = yt, l = logits))
-    m_cint <- glm(I(y == 1) ~ offset(l), data = df, family = "binomial")
+    m_cint <- glm(I(y == 0) ~ offset(l), data = df, family = "binomial")
     cint[cl] <- coef(m_cint)[1]
-    m_cslope <- glm(I(y == 1) ~ l, data = df, family = "binomial")
+    m_cslope <- glm(I(y == 0) ~ l, data = df, family = "binomial")
     cslope[cl] <- coef(m_cslope)[2]
   }
   ret <- list(cint = cint,
