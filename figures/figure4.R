@@ -17,7 +17,7 @@ theme_set(theme_bw())
 tn <- 150
 n_mods <- 5
 cols <- colorspace::qualitative_hcl(n = 3, l = 40)
-names(cols) <- c("LIN", "LOG", "TRF")
+names(cols) <- c("LIN-Ens", "LOG-Ens", "TRF-Ens")
 
 # FUNs --------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ p1 <- ggplot(pdat$df, aes(x = CE, y = trafo, col = member)) +
   geom_abline(intercept = 0, slope = 1, alpha = 0.3) +
   labs(
     x = expression(F[Z]^{-1}*(bar(F)[M]^c*(y[i]*'|'*x[i]))),
-    y = expression(h[m](y[i]*'|'*x[i]))
+    y = expression(F[Z]^{-1}*(F[m](y[i]*'|'*x[i])))
   )
 
 p2 <- ggplot(udat, aes(x = y, y = pnorm(val), group = mem)) +

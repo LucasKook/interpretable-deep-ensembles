@@ -17,7 +17,7 @@ pZ <- function(z) plogis(z)
 dZ <- function(z) dlogis(z)
 hp <- function(dy, theta) dy %*% theta
 cols <- colorspace::qualitative_hcl(n = 3, l = 40)
-names(cols) <- c("LIN", "LOG", "TRF")
+names(cols) <- c("LIN-Ens", "LOG-Ens", "TRF-Ens")
 
 # Data --------------------------------------------------------------------
 
