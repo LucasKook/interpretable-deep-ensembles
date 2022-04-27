@@ -17,7 +17,8 @@ pZ <- function(z) plogis(z)
 dZ <- function(z) dlogis(z)
 hp <- function(dy, theta) dy %*% theta
 cols <- colorspace::qualitative_hcl(n = 3, l = 40)
-names(cols) <- c("LIN-Ens", "LOG-Ens", "TRF-Ens")
+names(cols) <- c("LIN", "LOG", "TRF")
+labs <- c("LIN-Ens", "LOG-Ens", "TRF-Ens")
 
 # Data --------------------------------------------------------------------
 
@@ -82,7 +83,7 @@ p2 <- ggplot(edat, aes(x = y, y = -log(value), color = method, group = method)) 
   geom_line(show.legend = FALSE) +
   labs(x = "y", y = "NLL", color = "Ensemble", size = "") +
   scale_size_manual(values = c("Avg" = 0.7)) +
-  scale_color_manual(values = cols)
+  scale_color_manual(values = cols, labels = labs)
 
 (p1 + labs(tag = "A")) + (p2 + labs(tag = "B"))
 ggsave("figure3.pdf", height = 4, width = 9)

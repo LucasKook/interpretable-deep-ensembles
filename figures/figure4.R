@@ -73,12 +73,13 @@ p1 <- ggplot(pdat$df, aes(x = CE, y = trafo, col = member)) +
 p2 <- ggplot(udat, aes(x = y, y = pnorm(val), group = mem)) +
   geom_ribbon(aes(x = y, ymin = pnorm(avg - 2 * sd), ymax = pnorm(avg + 2 * sd)),
               data = udat, inherit.aes = FALSE, alpha = 0.3) +
-  geom_line(aes(linetype = "Individual"), alpha = 0.7) +
-  geom_line(aes(x = y, y = pnorm(avg), linetype = "Ensemble"), data = udat,
+  geom_line(aes(linetype = "Member"), alpha = 0.7) +
+  geom_line(aes(x = y, y = pnorm(avg), linetype = "TRF-Ens"), data = udat,
             inherit.aes = FALSE) +
   labs(x = "y", y = "CDF of Y | x = 0", linetype = "") +
   theme(legend.position = c(0.25, 0.8),
-        legend.background = element_rect(fill = "transparent"))
+        legend.background = element_rect(fill = "transparent")) +
+  scale_linetype_manual(values = c(2, 1))
 
 cdat <- pdat$cp %>%
   gather("mem", "val", cps.1:cps.5) %>%
@@ -87,13 +88,14 @@ cdat <- pdat$cp %>%
 
 p3 <- ggplot(cdat, aes(x = x, y = val, group = mem)) +
   geom_ribbon(aes(ymin = avg - 2 * sd, ymax = avg + 2 * sd), alpha = 0.3, fill = "gray") +
-  geom_line(aes(linetype = "Individual"), alpha = 0.7) +
-  geom_line(aes(y = avg, linetype = "Ensemble")) +
+  geom_line(aes(linetype = "Member"), alpha = 0.7) +
+  geom_line(aes(y = avg, linetype = "TRF-Ens")) +
   geom_point(aes(x = x, y = y), data = pdat$td, inherit.aes = FALSE, alpha = 0.3) +
   labs(y = "y", color = "", linetype = "Conditional median", fill = "") +
   theme(legend.position = c(0.25, 0.8),
         legend.background = element_rect(fill = "transparent")) +
-  scale_fill_manual(values = "gray")
+  scale_fill_manual(values = "gray") +
+  scale_linetype_manual(values = c(2, 1))
 
 (p1 + labs(tag = "A")) + (p3 + labs(tag = "B")) + (p2 + labs(tag = "C"))
 
