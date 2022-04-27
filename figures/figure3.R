@@ -54,7 +54,7 @@ edat <- data.frame(
   LIN = censemble,
   TRF = iensemble,
   LOG = lensemble,
-  AVG = mNLL
+  Avg = mNLL
 ) %>%
   gather("method", "value", LIN, TRF, LOG)
 
@@ -77,11 +77,11 @@ p1 <- ggplot(edat,
 p2 <- ggplot(edat, aes(x = y, y = -log(value), color = method, group = method)) +
   geom_line(aes(x = y, y = -log(value), group = member), data = mdat,
             inherit.aes = FALSE, alpha = 0.3, linetype = 2) +
-  geom_line(aes(x = y, y = -log(value), lwd = "AVG"), data = adat,
+  geom_line(aes(x = y, y = -log(value), lwd = "Avg"), data = adat,
             inherit.aes = FALSE, alpha = 1, linetype = 1) +
   geom_line(show.legend = FALSE) +
   labs(x = "y", y = "NLL", color = "Ensemble", size = "") +
-  scale_size_manual(values = c("AVG" = 0.7)) +
+  scale_size_manual(values = c("Avg" = 0.7)) +
   scale_color_manual(values = cols)
 
 (p1 + labs(tag = "A")) + (p2 + labs(tag = "B"))
