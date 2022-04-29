@@ -414,3 +414,66 @@ generator <- function(mod = c("silscs", "sics", "cils", "ci"),
   return(ret)
 }
 
+#' Get bootstrap samples on CDF level
+#' @export
+get_bs_sample <- function(cdf, y_true) {
+  cdf <- as.matrix(cdf)
+  n <- nrow(cdf)
+  idx <- sample(n, n, replace = TRUE)
+  return(list(cdf[idx, ], y_true[idx, ]))
+}
+
+#' Applies a function to a bootstrap sample of all CDFs in a list and returns their mean
+#' @param fun function that is applied to a bootstrap sample. Must take as
+#' arguments \code{cdf} and \code{y_true}.
+#' @param ... additional arguments to \code{fun}.
+#' @export
+get_single_bs <- function(lys_cdf, y_true, fun,
+                          weights = rep(1, length(lys_cdf)), ...) {
+  lys_cdf <- lapply(lys_cdf, as.matrix)
+  lys_bs <- lapply(lys_cdf, get_bs_sample, y_true = y_true)
+  lys_cdf_bs <- sapply(lys_bs, "[", 1)
+  y_true_bs <- sapply(lys_bs, "[", 2)
+  lys_scores <- mapply(fun, cdf = lys_cdf_bs,
+                       y_true = y_true_bs,
+                       MoreArgs = list(...),
+                       SIMPLIFY = FALSE)
+  weighted.mean(unlist(lys_scores), w = weights) # average across members (if m > 1)
+}
+
+#' Applies a function to a bootstrap sample of all CDFs within a split and
+#' returns their mean across splits.
+#' @param weights list of weights. Each element contains the weights per split as numeric vector.
+#' @param ... additional arguments to \code{fun}.
+#' @export
+get_single_bs_across_spl <- function(lys_cdf_all, y_true_all, fun,
+                                     weights = rep(list(rep(1, length(lys_cdf_all[[1]]))),
+                                                   length(lys_cdf_all)), ...) {
+  spl <- length(lys_cdf_all)
+  lys_avg <- list()
+  for (s in seq_len(spl)) {
+    lys_avg[[s]] <- get_single_bs(lys_cdf = lys_cdf_all[[s]], y_true = y_true_all[[s]],
+                                  weights = weights[[s]], fun = fun, ... = ...)
+  }
+  mean(unlist(lys_avg))
+}
+
+#' Applies a function to a bootstrap sample of all CDFs within a split B times
+#' and returns all values.
+#' @param B number of bootstrap samples that should be drawn per split.
+#' @param weights list of weights. Each element contains the weights per split as numeric vector.
+#' @param ... additional arguments to \code{fun}.
+#' @export
+get_bs <- function(lys_cdf_all, y_true_all, fun, B = 1000,
+                   weights = rep(list(rep(1, length(lys_cdf_all[[1]]))),
+                                 length(lys_cdf_all)), ...) {
+  avg_acr_spl <- numeric(B)
+  for (b in seq_len(B)) {
+    avg_acr_spl[b] <- get_single_bs_across_spl(lys_cdf_all = lys_cdf_all,
+                                               y_true_all = y_true_all, fun = fun, ... = ...)
+  }
+  ret <- data.frame(t(quantile(avg_acr_spl, c(0.025, 0.5, 0.975))))
+  colnames(ret) <- c("lwr", "med", "upr")
+  return(ret)
+}
+

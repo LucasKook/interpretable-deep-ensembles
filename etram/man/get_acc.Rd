@@ -4,7 +4,7 @@
 \alias{get_acc}
 \title{Calculate accuracy}
 \usage{
-get_acc(cdf, y_true)
+get_acc(cdf, y_true, contribution = FALSE)
 }
 \description{
 Calculate accuracy

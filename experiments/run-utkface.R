@@ -22,7 +22,7 @@ out_dir <- "~/git-repos/MasterThesis/experiments/results/DE/UTKFace/"
 
 ## Source arguments
 
-source("./args-utkface.R")
+source("experiments/args-utkface.R")
 
 ## Fixed params
 

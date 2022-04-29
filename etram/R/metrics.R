@@ -10,13 +10,17 @@
 #'                             nrow = 3, byrow = T))
 #' get_acc(cdf = cdf, y_true = y_true)
 #' @export
-get_acc <- function(cdf, y_true) {
+get_acc <- function(cdf, y_true, contribution = FALSE) {
   cdf <- as.matrix(cdf)
   pdf <- t(apply(cbind(0, cdf), 1, diff))
   predicted <- apply(pdf, 1,  which.max)
   target <- apply(y_true, 1, which.max)
-  ret <- mean(predicted == target)
-  return(ret)
+  contr <- predicted == target
+  if (contribution) {
+    return(contr)
+  } else {
+    return(mean(contr))
+  }
 }
 
 #' Calculate mean accuracy of ensemble members
@@ -39,7 +43,9 @@ get_acc <- function(cdf, y_true) {
 #' @export
 get_avg_acc <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  weighted.mean(unlist(lapply(lys_cdf, get_acc, y_true = y_true)), w = weights)
+  weighted.mean(unlist(lapply(lys_cdf, get_acc,
+                              y_true = y_true,
+                              contribution = FALSE)), w = weights)
 }
 
 #' Calculate binary accuracy
@@ -54,13 +60,17 @@ get_avg_acc <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
 #'                             nrow = 3, byrow = T))
 #' get_binacc(cdf = cdf, y_true = y_true, cutoff = 2)
 #' @export
-get_binacc <- function(cdf, y_true, cutoff = 3) {
+get_binacc <- function(cdf, y_true, cutoff = 3, contribution = FALSE) {
   cdf <- as.matrix(cdf)
   pdfbin <- cdf[, cutoff]
   predicted <- ifelse(pdfbin >= 0.5, 1, 0)
   target <- apply(y_true[, 1L:cutoff, drop = FALSE], 1, sum)
-  ret <- mean(predicted == target)
-  return(ret)
+  contr <- predicted == target
+  if (contribution) {
+    return(contr)
+  } else {
+    return(mean(contr))
+  }
 }
 
 #' Calculate mean binary accuracy of ensemble members
@@ -83,7 +93,10 @@ get_binacc <- function(cdf, y_true, cutoff = 3) {
 #' @export
 get_avg_binacc <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  weighted.mean(unlist(lapply(lys_cdf, get_binacc, y_true = y_true, cutoff = cutoff)), w = weights)
+  weighted.mean(unlist(lapply(lys_cdf, get_binacc,
+                              y_true = y_true,
+                              cutoff = cutoff,
+                              contribution = FALSE)), w = weights)
 }
 
 #' Calculate ranked probability score
@@ -98,13 +111,16 @@ get_avg_binacc <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(
 #'                             nrow = 3, byrow = T))
 #' get_rps(cdf = cdf, y_true = y_true)
 #' @export
-get_rps <- function(cdf, y_true) {
+get_rps <- function(cdf, y_true, contribution = FALSE) {
   cdf <- as.matrix(cdf)
   K <- ncol(y_true)
   cdf_true <- t(apply(y_true, 1, cumsum))
-  briers <- 1/(K - 1) * apply((cdf_true - cdf)^2, 1, sum)
-  ret <- mean(briers)
-  return(ret)
+  contr <- 1/(K - 1) * apply((cdf_true - cdf)^2, 1, sum)
+  if (contribution) {
+    return(contr)
+  } else {
+    return(mean(contr))
+  }
 }
 
 #' Calculate mean ranked probability score of ensemble members
@@ -127,7 +143,9 @@ get_rps <- function(cdf, y_true) {
 #' @export
 get_avg_rps <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  weighted.mean(unlist(lapply(lys_cdf, get_rps, y_true = y_true)), w = weights)
+  weighted.mean(unlist(lapply(lys_cdf, get_rps,
+                              y_true = y_true,
+                              contribution = FALSE)), w = weights)
 }
 
 #' Calculate negative log-likelihood
@@ -142,13 +160,16 @@ get_avg_rps <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
 #'                             nrow = 3, byrow = T))
 #' get_nll(cdf = cdf, y_true = y_true)
 #' @export
-get_nll <- function(cdf, y_true) {
+get_nll <- function(cdf, y_true, contribution = FALSE) {
   cdf <- as.matrix(cdf)
   pdf <- t(apply(cbind(0, cdf), 1, diff))
   li <- apply(y_true * pdf, 1, sum)
-  lli <- log(li)
-  nll <- -mean(lli)
-  return(nll)
+  contr <- -log(li)
+  if (contribution) {
+    return(contr)
+  } else {
+    return(mean(contr))
+  }
 }
 
 #' Calculate mean negative log-likelihood of ensemble members
@@ -171,7 +192,9 @@ get_nll <- function(cdf, y_true) {
 #' @export
 get_avg_nll <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  weighted.mean(unlist(lapply(lys_cdf, get_nll, y_true = y_true)), w = weights)
+  weighted.mean(unlist(lapply(lys_cdf, get_nll,
+                              y_true = y_true,
+                              contribution = FALSE)), w = weights)
 }
 
 #' Calculate binary negative log-likelihood
@@ -186,13 +209,16 @@ get_avg_nll <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
 #'                             nrow = 3, byrow = T))
 #' get_binnll(cdf = cdf, y_true = y_true, cutoff = 2)
 #' @export
-get_binnll <- function(cdf, y_true, cutoff = 3) {
+get_binnll <- function(cdf, y_true, cutoff = 3, contribution = FALSE) {
   cdf <- as.matrix(cdf)
   pdfbin <- cdf[, cutoff]
   ytruebin <- apply(y_true[, 1L:cutoff, drop = FALSE], 1, sum)
-  binli <- ytruebin * pdfbin + (1 - ytruebin) * (1 - pdfbin)
-  binnll <- -mean(log(binli))
-  return(binnll)
+  contr <- -log(ytruebin * pdfbin + (1 - ytruebin) * (1 - pdfbin))
+  if (contribution) {
+    return(contr)
+  } else {
+    return(mean(contr))
+  }
 }
 
 #' Calculate mean binary negative log-likelihood of ensemble members
@@ -215,7 +241,10 @@ get_binnll <- function(cdf, y_true, cutoff = 3) {
 #' @export
 get_avg_binnll <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  weighted.mean(unlist(lapply(lys_cdf, get_binnll, y_true = y_true, cutoff = cutoff)), w = weights)
+  weighted.mean(unlist(lapply(lys_cdf, get_binnll,
+                              y_true = y_true,
+                              cutoff = cutoff,
+                              contribution = FALSE)), w = weights)
 }
 
 #' Calculate area under the ROC curve
@@ -275,7 +304,7 @@ get_avg_auc <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys
 #'                             nrow = 3, byrow = T))
 #' get_qwk(cdf = cdf, y_true = y_true, p = 2)
 #' @export
-get_qwk <- function(cdf, y_true, p = 2) {
+get_qwk <- function(cdf, y_true, p = 2, contribution = FALSE) {
   cdf <- as.matrix(cdf)
   K <- ncol(y_true)
   weights <- ontram:::weight_scheme(K, p)
@@ -412,12 +441,16 @@ get_avg_cal <- function(lys_cdf, y_true, weights = rep(1, length(lys_cdf))) {
 #'                             nrow = 3, byrow = T))
 #' get_brier(cdf = cdf, y_true = y_true, cutoff = 2)
 #' @export
-get_brier <- function(cdf, y_true, cutoff = 3) {
+get_brier <- function(cdf, y_true, cutoff = 3, contribution = FALSE) {
   cdf <- as.matrix(cdf)
   pdfbin <- cdf[, cutoff]
   ytruebin <- apply(y_true[, 1L:cutoff, drop = FALSE], 1, sum)
-  ret <- mean((ytruebin - pdfbin)^2)
-  return(ret)
+  contr <- (ytruebin - pdfbin)^2
+  if (contribution) {
+    return(contr)
+  } else {
+    return(mean(contr))
+  }
 }
 
 #' Calculate mean brier score across ensemble members
@@ -440,6 +473,9 @@ get_brier <- function(cdf, y_true, cutoff = 3) {
 #' @export
 get_avg_brier <- function(lys_cdf, y_true, cutoff = 3, weights = rep(1, length(lys_cdf))) {
   lys_cdf <- lapply(lys_cdf, as.matrix)
-  weighted.mean(unlist(lapply(lys_cdf, get_brier, y_true = y_true, cutoff = cutoff)), w = weights)
+  weighted.mean(unlist(lapply(lys_cdf, get_brier,
+                              y_true = y_true,
+                              cutoff = cutoff,
+                              contribution = FALSE)), w = weights)
 }
 

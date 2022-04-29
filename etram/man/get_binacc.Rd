@@ -4,7 +4,7 @@
 \alias{get_binacc}
 \title{Calculate binary accuracy}
 \usage{
-get_binacc(cdf, y_true, cutoff = 3)
+get_binacc(cdf, y_true, cutoff = 3, contribution = FALSE)
 }
 \description{
 Calculate binary accuracy

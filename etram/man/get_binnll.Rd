@@ -4,7 +4,7 @@
 \alias{get_binnll}
 \title{Calculate binary negative log-likelihood}
 \usage{
-get_binnll(cdf, y_true, cutoff = 3)
+get_binnll(cdf, y_true, cutoff = 3, contribution = FALSE)
 }
 \description{
 Calculate binary negative log-likelihood

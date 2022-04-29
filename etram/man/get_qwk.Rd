@@ -4,7 +4,7 @@
 \alias{get_qwk}
 \title{Calculate quadratic weighted kappa}
 \usage{
-get_qwk(cdf, y_true, p = 2)
+get_qwk(cdf, y_true, p = 2, contribution = FALSE)
 }
 \description{
 Calculate quadratic weighted kappa

@@ -4,7 +4,7 @@
 \alias{get_nll}
 \title{Calculate negative log-likelihood}
 \usage{
-get_nll(cdf, y_true)
+get_nll(cdf, y_true, contribution = FALSE)
 }
 \description{
 Calculate negative log-likelihood

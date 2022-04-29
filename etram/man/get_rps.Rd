@@ -4,7 +4,7 @@
 \alias{get_rps}
 \title{Calculate ranked probability score}
 \usage{
-get_rps(cdf, y_true)
+get_rps(cdf, y_true, contribution = FALSE)
 }
 \description{
 Calculate ranked probability score

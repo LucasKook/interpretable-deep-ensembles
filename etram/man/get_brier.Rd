@@ -4,7 +4,7 @@
 \alias{get_brier}
 \title{Calculate binary brier score}
 \usage{
-get_brier(cdf, y_true, cutoff = 3)
+get_brier(cdf, y_true, cutoff = 3, contribution = FALSE)
 }
 \description{
 Calculate binary brier score

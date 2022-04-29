@@ -23,7 +23,7 @@ out_dir <- "~/git-repos/MasterThesis/experiments/results/DE/melanoma/"
 
 ## Source arguments
 
-source("./args-mela.R")
+source("experiments/args-mela.R")
 
 ## Fixed params
 
