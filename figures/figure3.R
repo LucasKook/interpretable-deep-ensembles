@@ -73,7 +73,7 @@ p1 <- ggplot(edat,
             inherit.aes = FALSE, alpha = 0.3, linetype = 2) +
   geom_line() +
   labs(x = "y", y = "density", color = "Ensemble") +
-  scale_color_manual(values = cols)
+  scale_color_manual(values = cols, labels = labs)
 
 p2 <- ggplot(edat, aes(x = y, y = -log(value), color = method, group = method)) +
   geom_line(aes(x = y, y = -log(value), group = member), data = mdat,
