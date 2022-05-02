@@ -8,7 +8,7 @@
 #' @export
 fit_ref_lossrps <- function(mod = c("sils", "si"), fml, tab_dat, ridx,
                             splits = 6,
-                            bs = ncol(tab_dat), lr = 0.005, decay = 1e-3,
+                            bs = ncol(tab_dat), lr = 0.1, decay = 1e-4,
                             optimizer = optimizer_adam(learning_rate = lr, decay = decay),
                             epochs = 800,
                             out_dir, fname) {
