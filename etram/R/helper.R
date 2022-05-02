@@ -414,66 +414,203 @@ generator <- function(mod = c("silscs", "sics", "cils", "ci"),
   return(ret)
 }
 
-#' Get bootstrap samples on CDF level
-#' @export
-get_bs_sample <- function(cdf, y_true) {
-  cdf <- as.matrix(cdf)
-  n <- nrow(cdf)
-  idx <- sample(n, n, replace = TRUE)
-  return(list(cdf[idx, ], y_true[idx, ]))
-}
-
-#' Applies a function to a bootstrap sample of all CDFs in a list and returns their mean
-#' @param fun function that is applied to a bootstrap sample. Must take as
-#' arguments \code{cdf} and \code{y_true}.
-#' @param ... additional arguments to \code{fun}.
-#' @export
-get_single_bs <- function(lys_cdf, y_true, fun,
-                          weights = rep(1, length(lys_cdf)), ...) {
-  lys_cdf <- lapply(lys_cdf, as.matrix)
-  lys_bs <- lapply(lys_cdf, get_bs_sample, y_true = y_true)
-  lys_cdf_bs <- sapply(lys_bs, "[", 1)
-  y_true_bs <- sapply(lys_bs, "[", 2)
-  lys_scores <- mapply(fun, cdf = lys_cdf_bs,
-                       y_true = y_true_bs,
-                       MoreArgs = list(...),
-                       SIMPLIFY = FALSE)
-  weighted.mean(unlist(lys_scores), w = weights) # average across members (if m > 1)
-}
-
-#' Applies a function to a bootstrap sample of all CDFs within a split and
-#' returns their mean across splits.
-#' @param weights list of weights. Each element contains the weights per split as numeric vector.
-#' @param ... additional arguments to \code{fun}.
-#' @export
-get_single_bs_across_spl <- function(lys_cdf_all, y_true_all, fun,
-                                     weights = rep(list(rep(1, length(lys_cdf_all[[1]]))),
-                                                   length(lys_cdf_all)), ...) {
-  spl <- length(lys_cdf_all)
-  lys_avg <- list()
-  for (s in seq_len(spl)) {
-    lys_avg[[s]] <- get_single_bs(lys_cdf = lys_cdf_all[[s]], y_true = y_true_all[[s]],
-                                  weights = weights[[s]], fun = fun, ... = ...)
-  }
-  mean(unlist(lys_avg))
-}
-
-#' Applies a function to a bootstrap sample of all CDFs within a split B times
-#' and returns all values.
-#' @param B number of bootstrap samples that should be drawn per split.
-#' @param weights list of weights. Each element contains the weights per split as numeric vector.
-#' @param ... additional arguments to \code{fun}.
-#' @export
-get_bs <- function(lys_cdf_all, y_true_all, fun, B = 1000,
+#' Bootstrap confidence intervals across all splits
+#' @description  Calculates bootstrap median and confidence intervals across all splits
+#' for binary (NLL, Brier score, 1-AUC, 1-accuracy, calibration-in-the-large, calibration slope)
+#' or ordinal (NLL, RPS, 1-QWK, 1-accuracy, calibration-in-the-large, calibration slope) metrics.
+#' If desired the confidence interval is additionally calculated for the test error relative to a
+#' reference model (performance treated as fixed).
+#' @param lys_cdf_all list of lists. Each sublist contains the CDFs of all ensemble members
+#' or the ensemble CDF per split.
+#' @param y_true_all list of all observed responses (one-hot encoded).
+#' @param met_ref optional. Test performance of the reference model (e.g. simple linear shift model)
+#' as a data frame. Must contain the variables \code{spl} and \code{metric} with the following levels:
+#' \code{c('nll', 'brier', 'eauc', 'eacc', 'cint', 'cslope')} or
+#' \code{c('nll', 'rps', 'eqwk', 'eacc', 'cint', 'cslope')}.
+#' @param R number of bootstrap samples.
+#' @param weights list of optimized weights. Each element contains the weights for each
+#' ensemble member as numeric vector.
+get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
+                   R = 1000,
                    weights = rep(list(rep(1, length(lys_cdf_all[[1]]))),
-                                 length(lys_cdf_all)), ...) {
-  avg_acr_spl <- numeric(B)
-  for (b in seq_len(B)) {
-    avg_acr_spl[b] <- get_single_bs_across_spl(lys_cdf_all = lys_cdf_all,
-                                               y_true_all = y_true_all, fun = fun, ... = ...)
+                                 length(lys_cdf_all)), binary = FALSE) {
+  K <- ncol(lys_cdf_all[[1]][[1]])
+  spl <- length(lys_cdf_all)
+  mem <- length(lys_cdf_all[[1]])
+  if (!is.null(met_ref)) {
+    ref <- TRUE
+    met_ref$metric <- paste0("w", met_ref$metric) # same names as boot res
+    met_ref$spl <- factor(met_ref$spl) # otw error in left_join
+  } else {
+    ref <- FALSE
   }
-  ret <- data.frame(t(quantile(avg_acr_spl, c(0.025, 0.5, 0.975))))
-  colnames(ret) <- c("lwr", "med", "upr")
+  # revert one-hot encoding
+  yt_all <- lapply(y_true_all, function(spl) apply(spl, 1, which.max))
+  # convert to df, create vars spl, mem, weights
+  for (s in seq_len(spl)) {
+    for (m in seq_len(mem)) {
+      lys_cdf_all[[s]][[m]] <- data.frame(lys_cdf_all[[s]][[m]])
+      lys_cdf_all[[s]][[m]]$yt <- yt_all[[s]]
+      lys_cdf_all[[s]][[m]]$mem <- factor(m)
+      lys_cdf_all[[s]][[m]]$w <- weights[[s]][m]
+    }
+  }
+  lys_cdf_all <- lapply(lys_cdf_all, function(spl) do.call("rbind", spl))
+  for (s in seq_len(spl)) {
+    lys_cdf_all[[s]]$spl <- factor(s)
+  }
+  # df with first k cols cdf, y_true, mem, spl
+  dd <- do.call("rbind", lys_cdf_all)
+  res <- boot(dd, statistic = .statFun, R = R, K = K, binary = binary, met_ref = met_ref)
+  nmet <- ncol(res$t)/spl
+  ret <- list()
+  for (m in seq_len(nmet)) {
+    avg_acr_spl <- rowMeans(res$t[, ((m - 1) * spl + 1) : ((m - 1) * spl + spl)])
+    ret <- c(ret, list(data.frame(t(quantile(avg_acr_spl, c(0.025, 0.5, 0.975), na.rm = TRUE)))))
+  }
+  ret <- do.call("rbind", ret)
+  if (binary) {
+    if (!ref) {
+      ret$metric <- c("nll", "brier", "eauc", "eacc", "cint", "cslope")
+    } else {
+      ret$metric <- c("nll", "brier", "eauc", "eacc", "cint", "cslope",
+                      "dnll", "dbrier", "deauc", "deacc")
+    }
+  } else {
+    if (!ref) {
+      ret$metric <- c("nll", "rps", "eqwk", "eacc", "cint", "cslope")
+    } else {
+      ret$metric <- c("nll", "rps", "eqwk", "eacc", "cint", "cslope",
+                      "dnll", "drps", "deqwk", "deacc")
+    }
+  }
+  colnames(ret) <- c("lwr", "med", "upr", "metric")
   return(ret)
 }
 
+.onehot <- function(y, K) {
+  rnks <- as.numeric(as.factor(rank(y)))
+  ret <- matrix(0, nrow = length(rnks), ncol = K)
+  for (r in seq_len(nrow(ret))) {
+    ret[r, rnks[r]] <- ret[r, rnks[r]] + 1
+  }
+  return(ret)
+}
+
+.get_nll_bs <- function(d, K) {
+  # cols 1:K cdf, K + 1: y_true, cdf ref
+  cdf <- d[, 1:K]
+  y_true <- data.frame(.onehot(d[, K+1], K = K))
+  get_nll(cdf = cdf, y_true = y_true)
+}
+
+.get_rps_bs <- function(d, K) {
+  cdf <- d[, 1:K]
+  y_true <- data.frame(.onehot(d[, K+1], K = K))
+  get_rps(cdf = cdf, y_true = y_true)
+}
+
+.get_eacc_bs <- function(d, K) {
+  cdf <- d[, 1:K]
+  y_true <- data.frame(.onehot(d[, K+1], K = K))
+  1 - get_acc(cdf = cdf, y_true = y_true)
+}
+
+.get_eauc_bs <- function(d, K) {
+  cdf <- d[, 1:K]
+  y_true <- data.frame(.onehot(d[, K+1], K = K))
+  1 - get_auc(cdf = cdf, y_true = y_true)
+}
+
+.get_eqwk_bs <- function(d, K, p = 2) {
+  cdf <- d[, 1:K]
+  y_true <- data.frame(.onehot(d[, K+1], K = K))
+  1 - get_qwk(cdf = cdf, y_true = y_true, p = 2)
+}
+
+.get_cint_bs <- function(d, K) {
+  cdf <- d[, 1:K]
+  y_true <- data.frame(.onehot(d[, K+1], K = K))
+  get_cal(cdf = cdf, y_true = y_true)[[1]]
+}
+
+.get_cslope_bs <- function(d, K) {
+  cdf <- d[, 1:K]
+  y_true <- data.frame(.onehot(d[, K+1], K = K))
+  get_cal(cdf = cdf, y_true = y_true)[[2]]
+}
+
+.get_brier_bs <- function(d, K) {
+  cdf <- d[, 1:K]
+  y_true <- data.frame(.onehot(d[, K+1], K = K))
+  get_brier(cdf = cdf, y_true = y_true)
+}
+
+
+.statFun <- function(d, i, K, binary, met_ref) {
+  if (!is.null(met_ref)) ref <- TRUE else ref <- FALSE
+  d %>%
+    slice(i) %>%
+    group_by(mem, spl) %>%
+    {if (binary) {
+      {.} %>% dplyr::summarise(nll = .get_nll_bs(cur_data(), K = K),
+                               brier = .get_brier_bs(cur_data(), K = K),
+                               eauc = .get_eauc_bs(cur_data(), K = K),
+                               eacc = .get_eacc_bs(cur_data(), K = K),
+                               cint = .get_cint_bs(cur_data(), K = K),
+                               cslope = .get_cslope_bs(cur_data(), K = K),
+                               w = unique(w))
+    } else {
+      {.} %>% dplyr::summarise(nll = .get_nll_bs(cur_data(), K = K),
+                               rps = .get_rps_bs(cur_data(), K = K),
+                               eqwk = .get_eqwk_bs(cur_data(), K = K),
+                               eacc = .get_eacc_bs(cur_data(), K = K),
+                               cint = .get_cint_bs(cur_data(), K = K),
+                               cslope = .get_cslope_bs(cur_data(), K = K),
+                               w = unique(w))
+    }} %>%
+    group_by(spl) %>%
+    {if (binary) {
+      {.} %>% dplyr::summarise(wnll = weighted.mean(nll, w),
+                               wbrier = weighted.mean(brier, w),
+                               weauc = weighted.mean(eauc, w),
+                               weacc = weighted.mean(eacc, w),
+                               wcint = weighted.mean(cint, w),
+                               wcslope = weighted.mean(cslope, w))
+    } else {
+      {.} %>% dplyr::summarise(wnll = weighted.mean(nll, w),
+                               wrps = weighted.mean(rps, w),
+                               weqwk = weighted.mean(eqwk, w),
+                               weacc = weighted.mean(eacc, w),
+                               wcint = weighted.mean(cint, w),
+                               wcslope = weighted.mean(cslope, w))
+    }} %>%
+    {if (ref) {
+      {.} %>%
+        gather("metric", "val", -spl) %>%
+        left_join(met_ref, by = c("metric", "spl")) %>%
+        mutate(diff = val.x - val.y,
+               dmetric = paste0("d", metric)) %>%
+        select(metric, val.x, diff) %>%
+        gather("key", "val", -metric) %>%
+        mutate(metric = case_when(key == "val.x" ~ metric,
+                                  key == "diff" ~ paste0("d", metric))) %>%
+        select(metric, val) %>%
+        pivot_wider(names_from = metric, values_from = val) %>% unnest()
+    } else (.)} %>%
+    {if (binary) {
+      if (!ref) {
+        {.} %>% dplyr::select(wnll, wbrier, weauc, weacc, wcint, wcslope) %>%  as.matrix(ncol = 1)
+      } else {
+        {.} %>% dplyr::select(wnll, wbrier, weauc, weacc, wcint, wcslope,
+                              dwnll, dwbrier, dweauc, dweacc) %>%  as.matrix(ncol = 1)
+      }
+    } else {
+      if (!ref) {
+        {.} %>% dplyr::select(wnll, wrps, weqwk, weacc, wcint, wcslope) %>% as.matrix(ncol = 1)
+      } else {
+        {.} %>%  dplyr::select(wnll, wrps, weqwk, weacc, wcint, wcslope,
+                               dwnll, dwrps, dweqwk, dweacc) %>% as.matrix(ncol = 1)
+      }
+    }}
+}
