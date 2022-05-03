@@ -9,6 +9,7 @@ get_bs(
   y_true_all,
   met_ref = NULL,
   R = 1000,
+  ncpus = 10,
   weights = rep(list(rep(1, length(lys_cdf_all[[1]]))), length(lys_cdf_all)),
   binary = FALSE
 )
@@ -25,6 +26,8 @@ as a data frame. Must contain the variables \code{spl} and \code{metric} with th
 \code{c('nll', 'rps', 'eqwk', 'eacc', 'cint', 'cslope')}.}
 
 \item{R}{number of bootstrap samples.}
+
+\item{ncpus}{Number of processes to be used in parallel operation.}
 
 \item{weights}{list of optimized weights. Each element contains the weights for each
 ensemble member as numeric vector.}

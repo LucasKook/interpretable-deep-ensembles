@@ -428,10 +428,12 @@ generator <- function(mod = c("silscs", "sics", "cils", "ci"),
 #' \code{c('nll', 'brier', 'eauc', 'eacc', 'cint', 'cslope')} or
 #' \code{c('nll', 'rps', 'eqwk', 'eacc', 'cint', 'cslope')}.
 #' @param R number of bootstrap samples.
+#' @param ncpus Number of processes to be used in parallel operation.
 #' @param weights list of optimized weights. Each element contains the weights for each
 #' ensemble member as numeric vector.
+#' @export
 get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
-                   R = 1000,
+                   R = 1000, ncpus = 10,
                    weights = rep(list(rep(1, length(lys_cdf_all[[1]]))),
                                  length(lys_cdf_all)), binary = FALSE) {
   K <- ncol(lys_cdf_all[[1]][[1]])
@@ -461,7 +463,8 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
   }
   # df with first k cols cdf, y_true, mem, spl
   dd <- do.call("rbind", lys_cdf_all)
-  res <- boot(dd, statistic = .statFun, R = R, K = K, binary = binary, met_ref = met_ref)
+  res <- boot(dd, statistic = .statFun, R = R, K = K, binary = binary, met_ref = met_ref,
+              ncpus = ncpus, parallel = "multicore")
   nmet <- ncol(res$t)/spl
   ret <- list()
   for (m in seq_len(nmet)) {
