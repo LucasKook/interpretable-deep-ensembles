@@ -7,7 +7,7 @@ Authors@R: c(
            email = "lucasheinrich.kook@gmail.com"),
     person("Andrea", "Goetschi", role = "aut"))
 Description: Transformation ensembles
-Depends: R (>= 3.6.0), ontram, dplyr
+Depends: R (>= 3.6.0), ontram, dplyr, tram
 License: GPL-3
 Encoding: UTF-8
 Suggests: 

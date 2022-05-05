@@ -474,16 +474,16 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
   ret <- do.call("rbind", ret)
   if (binary) {
     if (!ref) {
-      ret$metric <- c("nll", "brier", "eauc", "eacc", "cint", "cslope")
+      ret$metric <- c("nll", "brier", "eauc", "eacc")#, "cint", "cslope")
     } else {
-      ret$metric <- c("nll", "brier", "eauc", "eacc", "cint", "cslope",
+      ret$metric <- c("nll", "brier", "eauc", "eacc", #"cint", "cslope",
                       "dnll", "dbrier", "deauc", "deacc")
     }
   } else {
     if (!ref) {
-      ret$metric <- c("nll", "rps", "eqwk", "eacc", "cint", "cslope")
+      ret$metric <- c("nll", "rps", "eqwk", "eacc")#, "cint", "cslope")
     } else {
-      ret$metric <- c("nll", "rps", "eqwk", "eacc", "cint", "cslope",
+      ret$metric <- c("nll", "rps", "eqwk", "eacc", #"cint", "cslope",
                       "dnll", "drps", "deqwk", "deacc")
     }
   }
@@ -522,7 +522,9 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
 .get_eauc_bs <- function(d, K) {
   cdf <- d[, 1:K]
   y_true <- data.frame(.onehot(d[, K+1], K = K))
-  1 - get_auc(cdf = cdf, y_true = y_true)
+  ret <- try(1 - get_auc(cdf = cdf, y_true = y_true, cutoff = 1))
+  if (inherits(ret, "try-error")) return(NA) else return(ret) # otw error if there are no cases
+                                                              # or controls in bs sample
 }
 
 .get_eqwk_bs <- function(d, K, p = 2) {
@@ -546,7 +548,7 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
 .get_brier_bs <- function(d, K) {
   cdf <- d[, 1:K]
   y_true <- data.frame(.onehot(d[, K+1], K = K))
-  get_brier(cdf = cdf, y_true = y_true)
+  get_brier(cdf = cdf, y_true = y_true, cutoff = 1)
 }
 
 
@@ -579,31 +581,34 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
                                weauc = weighted.mean(eauc, w),
                                weacc = weighted.mean(eacc, w),
                                wcint = weighted.mean(cint, w),
-                               wcslope = weighted.mean(cslope, w))
+                               wcslope = weighted.mean(cslope, w)
+                               )
     } else {
       {.} %>% dplyr::summarise(wnll = weighted.mean(nll, w),
                                wrps = weighted.mean(rps, w),
                                weqwk = weighted.mean(eqwk, w),
                                weacc = weighted.mean(eacc, w),
                                wcint = weighted.mean(cint, w),
-                               wcslope = weighted.mean(cslope, w))
+                               wcslope = weighted.mean(cslope, w)
+                               )
     }} %>%
     {if (ref) {
       {.} %>%
-        gather("metric", "val", -spl) %>%
+        tidyr::gather("metric", "val", -spl) %>%
         left_join(met_ref, by = c("metric", "spl")) %>%
         mutate(diff = val.x - val.y,
                dmetric = paste0("d", metric)) %>%
         select(metric, val.x, diff) %>%
-        gather("key", "val", -metric) %>%
+        tidyr::gather("key", "val", -metric) %>%
         mutate(metric = case_when(key == "val.x" ~ metric,
                                   key == "diff" ~ paste0("d", metric))) %>%
         select(metric, val) %>%
-        pivot_wider(names_from = metric, values_from = val) %>% unnest()
+        tidyr::pivot_wider(names_from = metric, values_from = val) %>% tidyr::unnest()
     } else (.)} %>%
     {if (binary) {
       if (!ref) {
         {.} %>% dplyr::select(wnll, wbrier, weauc, weacc, wcint, wcslope) %>%  as.matrix(ncol = 1)
+        # {.} %>% dplyr::select(wnll, wbrier, weauc, weacc) %>%  as.matrix(ncol = 1)
       } else {
         {.} %>% dplyr::select(wnll, wbrier, weauc, weacc, wcint, wcslope,
                               dwnll, dwbrier, dweauc, dweacc) %>%  as.matrix(ncol = 1)
@@ -611,6 +616,7 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
     } else {
       if (!ref) {
         {.} %>% dplyr::select(wnll, wrps, weqwk, weacc, wcint, wcslope) %>% as.matrix(ncol = 1)
+        # {.} %>% dplyr::select(wnll, wrps, weqwk, weacc) %>% as.matrix(ncol = 1)
       } else {
         {.} %>%  dplyr::select(wnll, wrps, weqwk, weacc, wcint, wcslope,
                                dwnll, dwrps, dweqwk, dweacc) %>% as.matrix(ncol = 1)
