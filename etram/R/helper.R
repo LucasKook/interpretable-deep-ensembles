@@ -474,16 +474,16 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
   ret <- do.call("rbind", ret)
   if (binary) {
     if (!ref) {
-      ret$metric <- c("nll", "brier", "eauc", "eacc")#, "cint", "cslope")
+      ret$metric <- c("nll", "brier", "eauc", "eacc", "cint", "cslope")
     } else {
-      ret$metric <- c("nll", "brier", "eauc", "eacc", #"cint", "cslope",
+      ret$metric <- c("nll", "brier", "eauc", "eacc", "cint", "cslope",
                       "dnll", "dbrier", "deauc", "deacc")
     }
   } else {
     if (!ref) {
-      ret$metric <- c("nll", "rps", "eqwk", "eacc")#, "cint", "cslope")
+      ret$metric <- c("nll", "rps", "eqwk", "eacc", "cint", "cslope")
     } else {
-      ret$metric <- c("nll", "rps", "eqwk", "eacc", #"cint", "cslope",
+      ret$metric <- c("nll", "rps", "eqwk", "eacc", "cint", "cslope",
                       "dnll", "drps", "deqwk", "deacc")
     }
   }
@@ -608,7 +608,7 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
     {if (binary) {
       if (!ref) {
         {.} %>% dplyr::select(wnll, wbrier, weauc, weacc, wcint, wcslope) %>%  as.matrix(ncol = 1)
-        # {.} %>% dplyr::select(wnll, wbrier, weauc, weacc) %>%  as.matrix(ncol = 1)
+        #{.} %>% dplyr::select(wnll, wbrier, weauc, weacc) %>%  as.matrix(ncol = 1)
       } else {
         {.} %>% dplyr::select(wnll, wbrier, weauc, weacc, wcint, wcslope,
                               dwnll, dwbrier, dweauc, dweacc) %>%  as.matrix(ncol = 1)
@@ -616,7 +616,7 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
     } else {
       if (!ref) {
         {.} %>% dplyr::select(wnll, wrps, weqwk, weacc, wcint, wcslope) %>% as.matrix(ncol = 1)
-        # {.} %>% dplyr::select(wnll, wrps, weqwk, weacc) %>% as.matrix(ncol = 1)
+        #{.} %>% dplyr::select(wnll, wrps, weqwk, weacc) %>% as.matrix(ncol = 1)
       } else {
         {.} %>%  dplyr::select(wnll, wrps, weqwk, weacc, wcint, wcslope,
                                dwnll, dwrps, dweqwk, dweacc) %>% as.matrix(ncol = 1)
