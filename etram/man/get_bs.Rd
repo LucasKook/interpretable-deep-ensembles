@@ -11,7 +11,8 @@ get_bs(
   R = 1000,
   ncpus = 10,
   weights = rep(list(rep(1, length(lys_cdf_all[[1]]))), length(lys_cdf_all)),
-  binary = FALSE
+  binary = FALSE,
+  stratified = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,12 @@ as a data frame. Must contain the variables \code{spl} and \code{metric} with th
 
 \item{weights}{list of optimized weights. Each element contains the weights for each
 ensemble member as numeric vector.}
+
+\item{binary}{logical. Whether binary or ordinal metrics should be computed
+(binary metrics: NLL, Brier score, 1-AUC, 1-ACC, CITL, C Slope,
+ordinal metrics: NLL, RPS, 1-QWK, 1-ACC, CITL, C Slope)}
+
+\item{stratified}{logical. Whether samples should be taken stratified by split and member.}
 }
 \description{
 Calculates bootstrap median and confidence intervals across all splits

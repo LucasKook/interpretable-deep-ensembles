@@ -431,11 +431,16 @@ generator <- function(mod = c("silscs", "sics", "cils", "ci"),
 #' @param ncpus Number of processes to be used in parallel operation.
 #' @param weights list of optimized weights. Each element contains the weights for each
 #' ensemble member as numeric vector.
+#' @param binary logical. Whether binary or ordinal metrics should be computed
+#' (binary metrics: NLL, Brier score, 1-AUC, 1-ACC, CITL, C Slope,
+#' ordinal metrics: NLL, RPS, 1-QWK, 1-ACC, CITL, C Slope)
+#' @param stratified logical. Whether samples should be taken stratified by split and member.
 #' @export
 get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
                    R = 1000, ncpus = 10,
                    weights = rep(list(rep(1, length(lys_cdf_all[[1]]))),
-                                 length(lys_cdf_all)), binary = FALSE) {
+                                 length(lys_cdf_all)), binary = FALSE,
+                   stratified = FALSE) {
   K <- ncol(lys_cdf_all[[1]][[1]])
   spl <- length(lys_cdf_all)
   mem <- length(lys_cdf_all[[1]])
@@ -463,13 +468,20 @@ get_bs <- function(lys_cdf_all, y_true_all, met_ref = NULL,
   }
   # df with first k cols cdf, y_true, mem, spl
   dd <- do.call("rbind", lys_cdf_all)
-  res <- boot(dd, statistic = .statFun, R = R, K = K, binary = binary, met_ref = met_ref,
-              ncpus = ncpus, parallel = "multicore")
+  if (stratified) {
+    dd$splmem <- interaction(dd$spl, dd$mem)
+    res <- boot(dd, statistic = .statFun, R = R, K = K, binary = binary, met_ref = met_ref,
+                ncpus = ncpus, parallel = "multicore", strata = dd$splmem)
+  } else {
+    res <- boot(dd, statistic = .statFun, R = R, K = K, binary = binary, met_ref = met_ref,
+                ncpus = ncpus, parallel = "multicore")
+  }
   nmet <- ncol(res$t)/spl
   ret <- list()
   for (m in seq_len(nmet)) {
     avg_acr_spl <- rowMeans(res$t[, ((m - 1) * spl + 1) : ((m - 1) * spl + spl)])
-    ret <- c(ret, list(data.frame(t(quantile(avg_acr_spl, c(0.025, 0.5, 0.975), na.rm = TRUE)))))
+    ret <- c(ret, list(data.frame(t(quantile(avg_acr_spl[is.finite(avg_acr_spl)],
+                                             c(0.025, 0.5, 0.975), na.rm = TRUE)))))
   }
   ret <- do.call("rbind", ret)
   if (binary) {
