@@ -2,6 +2,23 @@
 # Andrea Goetschi
 # April 2022
 
+# Command line args -------------------------------------------------------
+
+args <- commandArgs(trailingOnly = TRUE)
+
+if (identical(args, character(0))) {
+  loss <- "rps"
+  fml <- age_group ~ 1
+  # fml <- age_group ~ gender + x_1 + x_2 + x_3 + x_4 + x_5 + x_6 + x_7 + x_8 +
+  #          x_9 + x_10
+  mod <- "ci"
+  fname <- paste0("utkface_", mod, "_loss", loss, "_wsyes_augno")
+} else {
+  loss <- args$loss
+  fml <- as.formula(args$formula)
+  mod <- args$mod
+  fname <- paste0("utkface_", mod, "_loss", loss, "_wsyes_augno")
+}
 
 # Reproducibility ---------------------------------------------------------
 
@@ -19,12 +36,6 @@ path <- "~/../data/UTKFace/UTKFace.h5"
 out_dir <- "experiments/results/DE/UTKFace/"
 
 # Params ------------------------------------------------------------------
-
-## Source arguments
-
-source("experiments/args-utkface.R")
-
-## Fixed params
 
 bs <- 32
 lr <- 10^-4

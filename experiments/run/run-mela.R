@@ -2,6 +2,22 @@
 # Andrea Goetschi
 # April 2022
 
+# Command line args -------------------------------------------------------
+
+args <- commandArgs(trailingOnly = TRUE)
+
+if (identical(args, character(0))) {
+  loss <- "rps"
+  fml <- "target ~ 1"
+  mod <- "ci"
+  fname <- paste0("mela_", mod, "_loss", loss, "_wsyes_augno")
+} else {
+  loss <- args$loss
+  fml <- as.formula(args$formula)
+  mod <- args$mod
+  fname <- paste0("mela_", mod, "_loss", loss, "_wsyes_augno")
+}
+
 # Reproducibility ---------------------------------------------------------
 
 set.seed(738593)
@@ -20,12 +36,6 @@ path <- "~/../data/mela_all/data/train.csv"
 out_dir <- "experiments/results/DE/melanoma/"
 
 # Params ------------------------------------------------------------------
-
-## Source arguments
-
-source("experiments/args-mela.R")
-
-## Fixed params
 
 bs <- 64
 lr <- 10^-4
@@ -50,7 +60,7 @@ ridx <- get_ridx(out_dir, "melanoma")
 
 ensemble(mod = mod,
          fml = fml, tab_dat = tab_dat, im = im, ridx = ridx,
-         splits = spl, ensembles = ens, 
+         splits = spl, ensembles = ens,
          nn = cnn_melanoma, input_shape = dim(im)[2:4],
          bs = bs, lr = lr, epochs = epochs,
          loss = loss,
