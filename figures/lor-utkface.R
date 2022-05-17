@@ -182,13 +182,13 @@ indivrps$mod <- factor(indivrps$mod, levels = c("sils", "silscs", "cils"))
 
 # Plot --------------------------------------------------------------------
 
-ornll <- pl_or(indiv = indivnll, width = 1, ylim = c(-0.53, 0.5), 
+ornll <- pl_or(indiv = indivnll, width = 1, ylim = c(-0.53, 0.5),
                order_vars = F, lbetvar = T)
 orrps <- pl_or(indiv = indivrps, width = 1, ylim = c(-0.53, 0.5),
                order_vars = F, lbetvar = T)
 
-## FIGURE E9
-lor <- (ornll + labs(tag = "A", subtitle = "Loss: NLL")) + 
+## FIGURE E10
+lor <- (ornll + labs(tag = "A", subtitle = "Loss: NLL")) +
        (orrps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 lor + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_lor.pdf"), height = 13, width = 10)

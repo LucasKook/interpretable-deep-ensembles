@@ -35,19 +35,19 @@ avg_rps <- read.csv(paste0(in_dir, "cal_avgrps_emp.csv"))
 
 # Prep --------------------------------------------------------------------
 
-avgnll <- avg_nll %>% filter(!(mod %in% c("si", "sils"))) %>% 
+avgnll <- avg_nll %>% filter(!(mod %in% c("si", "sils"))) %>%
   mutate(mod = factor(mod, levels = c("sics", "silscs", "ci", "cils")),
          method = factor(method, levels = c("avg", "linear",
                                             "avgll", "log-linear",
                                             "avgtrf", "trafo")))
 
-avgrps <- avg_rps %>% filter(!(mod %in% c("si", "sils"))) %>% 
+avgrps <- avg_rps %>% filter(!(mod %in% c("si", "sils"))) %>%
   mutate(mod = factor(mod, levels = c("sics", "silscs", "ci", "cils")),
          method = factor(method, levels = c("avg", "linear",
                                             "avgll", "log-linear",
                                             "avgtrf", "trafo")))
 
-avgref <- avg_nll %>% filter(mod %in% c("sils")) %>% 
+avgref <- avg_nll %>% filter(mod %in% c("sils")) %>%
   mutate(mod = factor(mod, levels = c("sils"))) %>%
   dplyr::select(-c("method"))
 
@@ -59,7 +59,7 @@ rps <- pl_cal(avg = avgrps, avg_ref = avgref)
 
 ## FIGURE 7 A, B
 
-avg <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) / 
+avg <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) /
   (rps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 avg + plot_layout(guides = "collect")
 
@@ -158,19 +158,19 @@ indivrps$mod <- factor(indivrps$mod, levels = c("sils", "cils"))
 
 # Plot --------------------------------------------------------------------
 
-## FIGURE 7 C
+## FIGURE 6 C
 
 ornll <- pl_or(indiv = indivnll, var_labs = c("s_age" = "age"),
                width = 0.2, ylim = c(0.55, 1.05))
-## FIGURE 7 D
+## FIGURE 6 D
 
 orrps <- pl_or(indiv = indivrps, var_labs = c("s_age" = "age"),
                width = 0.2, ylim = c(0.55, 1.05))
 
-## FIGURE 7
+## FIGURE 6
 
-pl <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) + 
-      (ornll + labs(tag = "C", subtitle = "Loss: NLL")) + 
+pl <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) +
+      (ornll + labs(tag = "C", subtitle = "Loss: NLL")) +
       (rps + labs(tag = "B", subtitle = "Loss: Brier score")) +
       (orrps + labs(tag = "D", subtitle = "Loss: Brier score")) & theme(legend.position = "right")
 pl + plot_layout(guides = "collect", widths = c(4, 3))

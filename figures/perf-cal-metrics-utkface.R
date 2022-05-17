@@ -268,10 +268,10 @@ met_ranked$spl <- factor(met_ranked$spl)
 ind_ranked <- bindr(pat1 = "indiv", pat2 = "rps")
 
 # confidence intervals
-ci_nll <- bind_rows(ci_nll_nw, ci_nll_w, ci_nll_nw %>% 
+ci_nll <- bind_rows(ci_nll_nw, ci_nll_w, ci_nll_nw %>%
                       filter(mod %in% c("si", "sils")) %>%
                       mutate(weights = "tuned"))
-ci_rps <- bind_rows(ci_rps_nw, ci_rps_w, ci_rps_nw %>% 
+ci_rps <- bind_rows(ci_rps_nw, ci_rps_w, ci_rps_nw %>%
                       filter(mod %in% c("si", "sils")) %>%
                       mutate(weights = "tuned"))
 
@@ -279,7 +279,7 @@ ci_rps <- bind_rows(ci_rps_nw, ci_rps_w, ci_rps_nw %>%
 
 ord_metrics <- c("nll", "rps", "eqwk")
 cal_metrics <- c("cint", "cslope")
-meths <- c("trafo", "avgtrf", 
+meths <- c("trafo", "avgtrf",
            "log-linear", "avgll",
            "linear", "avg")
 mods <- c("si", "sils", "sics", "silscs", "ci", "cils")
@@ -302,7 +302,7 @@ ind_ranked <- relev(ind_ranked, "metric", c(ord_metrics))
 # without reference models
 met_negloglik_noref <- met_negloglik[!(met_negloglik$mod %in% c("si", "sils")), ]
 met_negloglik_noref$mod <- factor(met_negloglik_noref$mod, levels = c("sics", "silscs", "ci", "cils"))
-met_negloglik_noref$method <- factor(met_negloglik_noref$method, levels = c("trafo", "avgtrf", 
+met_negloglik_noref$method <- factor(met_negloglik_noref$method, levels = c("trafo", "avgtrf",
                                                                             "log-linear", "avgll",
                                                                             "linear", "avg"))
 pl_ordnll_noref <- pl_met(spl_met = met_negloglik_noref,
@@ -319,10 +319,10 @@ pl_ordnll_indiv <- pl_met(spl_met = met_negloglik,
 # without reference models
 met_ranked_noref <- met_ranked[!(met_ranked$mod %in% c("si", "sils")), ]
 met_ranked_noref$mod <- factor(met_ranked_noref$mod, levels = c("sics", "silscs", "ci", "cils"))
-met_ranked_noref$method <- factor(met_ranked_noref$method, levels = c("trafo", "avgtrf", 
+met_ranked_noref$method <- factor(met_ranked_noref$method, levels = c("trafo", "avgtrf",
                                                                       "log-linear", "avgll",
                                                                       "linear", "avg"))
-pl_ordrps_noref <- pl_met(spl_met = met_ranked_noref[is.finite(met_ranked_noref$val), ], 
+pl_ordrps_noref <- pl_met(spl_met = met_ranked_noref[is.finite(met_ranked_noref$val), ],
                           ci = ci_rps,
                           metrics = ord_metrics)
 
@@ -333,16 +333,16 @@ pl_ordrps_indiv <- pl_met(spl_met = met_ranked[is.finite(met_ranked$val), ],
                           metrics = ord_metrics,
                           ref = c("si", "sils"))
 
-## FIGURE 9
+## FIGURE 7
 
-c_ord <- (pl_ordnll_noref + labs(tag = "A", subtitle = "Loss: NLL")) / 
+c_ord <- (pl_ordnll_noref + labs(tag = "A", subtitle = "Loss: NLL")) /
          (pl_ordrps_noref + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 c_ord + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_wvsnw.pdf"), height = 13.5, width = 11.5)
 
-## FIGURE E7
+## FIGURE E8
 
-c_ord_indiv <- (pl_ordnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) / 
+c_ord_indiv <- (pl_ordnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
                (pl_ordrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 c_ord_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_wvsnw_indiv.pdf"), height = 13.5, width = 11.5)
@@ -362,9 +362,9 @@ pl_ordrps_rel <-  pl_met(spl_met = met_ranked[is.finite(met_ranked$val), ],
                          ref = "si",
                          rel = TRUE)
 
-## FIGURE E6
+## FIGURE E7
 
-c_ord_rel <- (pl_ordnll_rel + labs(tag = "A", subtitle = "Loss: NLL")) / 
+c_ord_rel <- (pl_ordnll_rel + labs(tag = "A", subtitle = "Loss: NLL")) /
              (pl_ordrps_rel + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 c_ord_rel + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_wvsnw_rel.pdf"), height = 13, width = 11.5)
@@ -386,9 +386,9 @@ pl_calrps_indiv <- pl_met(spl_met = met_ranked,
                           ref = c("si", "sils"),
                           ylab = "")
 
-## FIGURE E8
+## FIGURE E9
 
-c_cal_indiv <- (pl_calnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) / 
+c_cal_indiv <- (pl_calnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
                (pl_calrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 c_cal_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_cal_indiv.pdf"), height = 12.1, width = 7.5)

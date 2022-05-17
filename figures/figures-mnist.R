@@ -92,11 +92,11 @@ met_cirps_all$spl <- factor(met_cirps_all$spl)
 ci_nll <- bind_rows(ci_nll_nw, ci_nll_w)
 ci_rps <- bind_rows(ci_rps_nw, ci_rps_w)
 
-## Reorder levels 
+## Reorder levels
 
 ord_met <- c("nll", "rps", "eacc")
 cal_met <- c("cint", "cslope")
-meths <- c("trafo", "avgtrf", 
+meths <- c("trafo", "avgtrf",
            "log-linear", "avgll",
            "linear", "avg")
 
@@ -115,7 +115,7 @@ ci_rps <- relev(ci_rps, "method", meths)
 
 # Plots NLL
 
-pl_ordnll <- pl_met(spl_met = met_cinll_all, 
+pl_ordnll <- pl_met(spl_met = met_cinll_all,
                     ci = ci_nll,
                     xlab = "",
                     metrics = ord_met)
@@ -127,28 +127,28 @@ pl_ordnll_indiv <- pl_met(spl_met = met_cinll_all, indiv_met = indivmet_cinll,
 
 # Plots RPS
 
-pl_ordrps <- pl_met(spl_met = met_cirps_all, 
+pl_ordrps <- pl_met(spl_met = met_cirps_all,
                     ci = ci_rps,
                     xlab = "",
                     metrics = ord_met)
 
-pl_ordrps_indiv <- pl_met(spl_met = met_cirps_all, 
+pl_ordrps_indiv <- pl_met(spl_met = met_cirps_all,
                           ci = ci_rps,
                           indiv_met = indivmet_cirps,
                           xlab = "",
                           metrics = ord_met)
 
 
-## FIGURE 5 A, B
+## FIGURE E1 A, B
 
-c_ord <- (pl_ordnll + labs(tag = "A", subtitle = "Loss: NLL")) / 
+c_ord <- (pl_ordnll + labs(tag = "A", subtitle = "Loss: NLL")) /
          (pl_ordrps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 c_ord + plot_layout(guides = "collect")
 # ggsave(paste0(out_dir, "mnist_ci_wvsnw.pdf"), height = 9, width = 8)
 
-## FIGURE E1
+## FIGURE E2
 
-c_ord_indiv <- (pl_ordnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) / 
+c_ord_indiv <- (pl_ordnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
                (pl_ordrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 c_ord_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mnist_ci_wvsnw_indiv.pdf"), height = 7, width = 8)
@@ -173,9 +173,9 @@ pl_calrps_indiv <- pl_met(spl_met = met_cirps_all,
                           ylab = "", xlab = "")
 
 
-## FIGURE E2
+## FIGURE E3
 
-c_cal_indiv <- (pl_calnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) / 
+c_cal_indiv <- (pl_calnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
                (pl_calrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 c_cal_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mnist_cal_indiv.pdf"), height = 7, width = 7.5)
@@ -183,7 +183,7 @@ ggsave(paste0(out_dir, "mnist_cal_indiv.pdf"), height = 7, width = 7.5)
 
 # Calibration plots -------------------------------------------------------
 
-## Read results 
+## Read results
 
 avg_nll <- read.csv(paste0(in_dir, "cumcal_avgnll.csv"))
 avg_rps <- read.csv(paste0(in_dir, "cumcal_avgrps.csv"))
@@ -201,9 +201,9 @@ nll <- pl_cal(avg = avgnll)
 rps <- pl_cal(avg = avgrps)
 
 
-## FIGURE 5 C, D
+## FIGURE E1 C, D
 
-avg <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) + 
+avg <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) +
        (rps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 avg + plot_layout(guides = "collect")
 # ggsave(paste0(out_dir, "mnist_cumcalpl.pdf"), height = 6.5, width = 8.7)
@@ -211,11 +211,11 @@ avg + plot_layout(guides = "collect")
 
 # Combine performance and calibration plots -------------------------------
 
-## FIGURE 5
+## FIGURE E1
 
-prf_cal <- (pl_ordnll + labs(tag = "A", subtitle = "Loss: NLL")) + 
+prf_cal <- (pl_ordnll + labs(tag = "A", subtitle = "Loss: NLL")) +
            (nll + theme(legend.position = "none")  + labs(tag = "C", subtitle = "Loss: NLL")) +
-           (pl_ordrps + labs(tag = "B", subtitle = "Loss: RPS")) +  
+           (pl_ordrps + labs(tag = "B", subtitle = "Loss: RPS")) +
            (rps + theme(legend.position = "none") + labs(tag = "D", subtitle = "Loss: RPS"))
 prf_cal + plot_layout(guides = "collect", widths = c(4, 1))
 
