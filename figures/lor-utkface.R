@@ -8,6 +8,7 @@ library(tidyverse)
 library(ggbeeswarm)
 library(colorspace)
 library(patchwork)
+library(ggpp) # position dodgenudge
 
 # Params ------------------------------------------------------------------
 
@@ -26,6 +27,7 @@ fname_cilsnll <- "utkface_cils_lossnll_wsyes_augno"
 fname_cilsrps <- "utkface_cils_lossrps_wsyes_augno"
 
 fname_sils <- "utkface_sils"
+fname_silsrps <- "utkface_sils_rps"
 
 # Load results ------------------------------------------------------------
 
@@ -42,7 +44,22 @@ sils_lor <- sils_lor %>% gather(key = "var", value = "lor")
 sils_lor$var <- factor(sils_lor$var)
 sils_lor$mod <- "sils"
 sils_lor$spl <- factor(rep(1:splits, nvars))
-silsnll_indivlor <- silsrps_indivlor <- sils_lor %>% mutate(w = 1)
+silsnll_indivlor <- sils_lor %>% mutate(w = 1)
+
+# sils rps
+silsrps_files <- list.files(path = in_dir,
+                         pattern = paste0(fname_silsrps, "_lor"))
+
+silsrps_lor <- lapply(silsrps_files, function(fname) {
+  read.csv(paste0(in_dir, fname))
+})
+
+silsrps_lor <- do.call("rbind", silsrps_lor)
+silsrps_lor <- silsrps_lor %>% gather(key = "var", value = "lor")
+silsrps_lor$var <- factor(silsrps_lor$var)
+silsrps_lor$mod <- "sils"
+silsrps_lor$spl <- factor(rep(1:splits, nvars))
+silsrps_indivlor <- silsrps_lor %>% mutate(w = 1)
 
 # silscs nll
 silscsnll_files <- list.files(path = in_dir,
@@ -165,12 +182,14 @@ indivrps$mod <- factor(indivrps$mod, levels = c("sils", "silscs", "cils"))
 
 # Plot --------------------------------------------------------------------
 
-ornll <- pl_or(indiv = indivnll, width = 1, ylim = c(-0.53, 0.5))
-orrps <- pl_or(indiv = indivrps, width = 1, ylim = c(-0.53, 0.5))
+ornll <- pl_or(indiv = indivnll, width = 1, ylim = c(-0.53, 0.5), 
+               order_vars = F, lbetvar = T)
+orrps <- pl_or(indiv = indivrps, width = 1, ylim = c(-0.53, 0.5),
+               order_vars = F, lbetvar = T)
 
 ## FIGURE E9
 lor <- (ornll + labs(tag = "A", subtitle = "Loss: NLL")) + 
        (orrps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
 lor + plot_layout(guides = "collect")
-ggsave(paste0(out_dir, "utkface_lor.pdf"), height = 7, width = 15)
+ggsave(paste0(out_dir, "utkface_lor.pdf"), height = 13, width = 10)
 

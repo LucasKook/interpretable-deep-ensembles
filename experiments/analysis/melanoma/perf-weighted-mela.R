@@ -5,22 +5,16 @@
 
 # Dependencies ------------------------------------------------------------
 
-library(readr)
-library(rhdf5)
-library(ontram)
 library(etram)
-library(dplyr)
 
 # Directories -------------------------------------------------------------
 
-im_path <- "~/../data/mela_all/data/train_mela_images/"
-path <- "~/../data/mela_all/data/train.csv"
+source("experiments/functions/functions_DE.R")
 in_dir <- out_dir <- "experiments/results/DE/melanoma/"
 
 # Params ------------------------------------------------------------------
 
-splits <- 6
-ensembles <- 5
+K <- 2
 
 fname_cilsnll <- "mela_silscs_lossnll_wsyes_augno"
 fname_cilsrps <- "mela_silscs_lossrps_wsyes_augno"
@@ -30,58 +24,39 @@ fname_cirps <- "mela_ci_lossrps_wsyes_augno"
 fname_si <- "mela_si"
 fname_sils <- "mela_sils"
 
-# Read data ---------------------------------------------------------------
-
-dat <- load_data("melanoma", path = path, im_path = im_path)
-tab_dat <- dat$tab_dat
-y <- model.matrix(~ 0 + target, data = tab_dat)
-
-ridx <- get_ridx(in_dir, fname = "melanoma")
-
 # Load results ------------------------------------------------------------
+
+## all CDF
+cdf_files <- list.files(path = in_dir,
+                        pattern = paste0("mela_merged_cdf.*\\.csv$"))
+cdf_files <- lapply(cdf_files, function(fname) {
+  read.csv(paste0(in_dir, fname))
+})
+all_cdf <- do.call("rbind", cdf_files)
+
+## all Y
+all_y <- read.csv(paste0(in_dir, "mela_merged_y.csv"))
 
 ## CDFs all splits
 
 ### CI-LS
-cdftest_cilsnll <- list_cdfs(in_dir, fname_cilsnll, splits, ensembles, "test")
-cdfval_cilsnll <- list_cdfs(in_dir, fname_cilsnll, splits, ensembles, "val")
+cdftest_cilsnll <- load_lys_cdf_all(all_cdf, m = "cils", K = K, l = "nll", t = "test")
+cdfval_cilsnll <- load_lys_cdf_all(all_cdf, m = "cils", K = K, l = "nll", t = "val")
 
-cdftest_cilsrps <- list_cdfs(in_dir, fname_cilsrps, splits, ensembles, "test")
-cdfval_cilsrps <- list_cdfs(in_dir, fname_cilsrps, splits, ensembles, "val")
+cdftest_cilsrps <- load_lys_cdf_all(all_cdf, m = "cils", K = K, l = "rps", t = "test")
+cdfval_cilsrps <- load_lys_cdf_all(all_cdf, m = "cils", K = K, l = "rps", t = "val")
 
 ### CI
-cdftest_cinll <- list_cdfs(in_dir, fname_cinll, splits, ensembles, "test")
-cdfval_cinll <- list_cdfs(in_dir, fname_cinll, splits, ensembles, "val")
+cdftest_cinll <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "nll", t = "test")
+cdfval_cinll <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "nll", t = "val")
 
-cdftest_cirps <- list_cdfs(in_dir, fname_cirps, splits, ensembles, "test")
-cdfval_cirps <- list_cdfs(in_dir, fname_cirps, splits, ensembles, "val")
-
-### SI
-
-cdftest_si <- list_cdfs(in_dir, fname_si, splits = splits, ensembles = NULL, "test")
-
-### SI-LS
-
-cdftest_sils <- list_cdfs(in_dir, fname_sils, splits = splits, ensembles = NULL, "test")
+cdftest_cirps <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "rps", t = "test")
+cdfval_cirps <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "rps", t = "val")
 
 ## Y true
 
-ytest_1 <- y[ridx[ridx$spl == 1 & ridx$type == "test", "idx"], ]
-ytest_2 <- y[ridx[ridx$spl == 2 & ridx$type == "test", "idx"], ]
-ytest_3 <- y[ridx[ridx$spl == 3 & ridx$type == "test", "idx"], ]
-ytest_4 <- y[ridx[ridx$spl == 4 & ridx$type == "test", "idx"], ]
-ytest_5 <- y[ridx[ridx$spl == 5 & ridx$type == "test", "idx"], ]
-ytest_6 <- y[ridx[ridx$spl == 6 & ridx$type == "test", "idx"], ]
-y_true_all <- list(ytest_1, ytest_2, ytest_3, ytest_4, ytest_5, ytest_6)
-
-yval_1 <- y[ridx[ridx$spl == 1 & ridx$type == "val", "idx"], ]
-yval_2 <- y[ridx[ridx$spl == 2 & ridx$type == "val", "idx"], ]
-yval_3 <- y[ridx[ridx$spl == 3 & ridx$type == "val", "idx"], ]
-yval_4 <- y[ridx[ridx$spl == 4 & ridx$type == "val", "idx"], ]
-yval_5 <- y[ridx[ridx$spl == 5 & ridx$type == "val", "idx"], ]
-yval_6 <- y[ridx[ridx$spl == 6 & ridx$type == "val", "idx"], ]
-y_true_val_all <- list(yval_1, yval_2, yval_3, yval_4, yval_5, yval_6)
-
+y_true_all <- load_y_true_all(all_y, K = K, t = "test")
+y_true_val_all <- load_y_true_all(all_y, K = K, t = "val")
 
 # Evaluation --------------------------------------------------------------
 

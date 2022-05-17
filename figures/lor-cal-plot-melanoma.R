@@ -5,9 +5,11 @@
 # Dep ---------------------------------------------------------------------
 
 library(colorspace)
-library(ggplot2)
+library(tidyverse)
+library(ggbeeswarm)
 library(dplyr)
 library(patchwork)
+library(ggpp) # position dodgenudge
 
 # Params ------------------------------------------------------------------
 
@@ -24,6 +26,7 @@ fname_cilsnll <- "mela_silscs_lossnll_wsyes_augno"
 fname_cilsrps <- "mela_silscs_lossrps_wsyes_augno"
 
 fname_sils <- "mela_sils"
+fname_silsrps <- "mela_sils_rps"
 
 # Load results calibration ------------------------------------------------
 
@@ -76,7 +79,22 @@ sils_lor <- sils_lor %>% gather(key = "var", value = "lor")
 sils_lor$var <- factor("s_age")
 sils_lor$mod <- "sils"
 sils_lor$spl <- factor(rep(1:splits, nvars))
-silsnll_indivlor <- silsrps_indivlor <- sils_lor %>% mutate(w = 1)
+silsnll_indivlor <- sils_lor %>% mutate(w = 1)
+
+# sils rps
+silsrps_files <- list.files(path = in_dir,
+                            pattern = paste0(fname_silsrps, "_lor"))
+
+silsrps_lor <- lapply(silsrps_files, function(fname) {
+  read.csv(paste0(in_dir, fname))
+})
+
+silsrps_lor <- do.call("rbind", silsrps_lor)
+silsrps_lor <- silsrps_lor %>% gather(key = "var", value = "lor")
+silsrps_lor$var <- factor("s_age")
+silsrps_lor$mod <- "sils"
+silsrps_lor$spl <- factor(rep(1:splits, nvars))
+silsrps_indivlor <- silsrps_lor %>% mutate(w = 1)
 
 
 # cils nll
@@ -143,18 +161,18 @@ indivrps$mod <- factor(indivrps$mod, levels = c("sils", "cils"))
 ## FIGURE 7 C
 
 ornll <- pl_or(indiv = indivnll, var_labs = c("s_age" = "age"),
-               width = 0.2, ylim = c(0, 0.93))
+               width = 0.2, ylim = c(0.55, 1.05))
 ## FIGURE 7 D
 
 orrps <- pl_or(indiv = indivrps, var_labs = c("s_age" = "age"),
-               width = 0.2, ylim = c(0, 0.93))
+               width = 0.2, ylim = c(0.55, 1.05))
 
 ## FIGURE 7
 
 pl <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) + 
       (ornll + labs(tag = "C", subtitle = "Loss: NLL")) + 
-      (rps + labs(tag = "B", subtitle = "Loss: RPS")) +
-      (orrps + labs(tag = "D", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+      (rps + labs(tag = "B", subtitle = "Loss: Brier score")) +
+      (orrps + labs(tag = "D", subtitle = "Loss: Brier score")) & theme(legend.position = "right")
 pl + plot_layout(guides = "collect", widths = c(4, 3))
 
 ggsave(paste0(out_dir, "mela_lor_calpl_emp.pdf"), height = 8, width = 11.6)

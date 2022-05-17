@@ -6,18 +6,16 @@
 
 library(etram)
 library(caret)
-library(readr)
-library(rhdf5)
 library(Hmisc)
+
+# Directories -------------------------------------------------------------
+
+source("experiments/functions/functions_DE.R")
+in_dir <- out_dir <- "experiments/results/DE/MNIST/"
 
 # Params ------------------------------------------------------------------
 
-ensembles <- 5
-spl <- 6
-
-source("experiments/functions/functions_DE.R")
-
-in_dir <- out_dir <- "experiments/results/DE/MNIST/"
+K <- 10
 
 fname_cinll <- "mnist_ci_lossnll_wsno_augno"
 fname_cirps <- "mnist_ci_lossrps_wsno_augno"
@@ -28,37 +26,25 @@ cut_fun <- function(x) {
   q1 <- quantile(x, 0.05)
   q2 <- quantile(x, 0.95)
   cstep <- (q2 - q1) / 9
-  between <- seq(from = q1, to = q2, by = cstep)
-  cuts <- c(0, between)
+  cuts <- seq(from = q1, to = q2, by = cstep)
   return(cuts)
 }
 
-# Read data ---------------------------------------------------------------
-
-dat <- load_data("mnist")
-tab_dat <- dat$tab_dat
-y <- model.matrix(~ 0 + y, data = tab_dat)
-
-ridx <- get_ridx(in_dir, fname = "mnist")
-
-
 # Load results ------------------------------------------------------------
 
-## CDFs all spl
+## all CDF, Y
+all_cdf <- read.csv(paste0(in_dir, "mnist_merged_cdf_ci.csv"))
+all_y <- read.csv(paste0(in_dir, "mnist_merged_y.csv"))
+
+## CDFs all splits
 
 ### CI
-cdftest_cinll <- list_cdfs(in_dir, fname_cinll, spl, ensembles, "test")
-cdftest_cirps <- list_cdfs(in_dir, fname_cirps, spl, ensembles, "test")
+cdftest_cinll <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "nll", t = "test")
+cdftest_cirps <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "rps", t = "test")
 
 ## Y true
 
-ytest_1 <- y[ridx[ridx$spl == 1 & ridx$type == "test", "idx"], ]
-ytest_2 <- y[ridx[ridx$spl == 2 & ridx$type == "test", "idx"], ]
-ytest_3 <- y[ridx[ridx$spl == 3 & ridx$type == "test", "idx"], ]
-ytest_4 <- y[ridx[ridx$spl == 4 & ridx$type == "test", "idx"], ]
-ytest_5 <- y[ridx[ridx$spl == 5 & ridx$type == "test", "idx"], ]
-ytest_6 <- y[ridx[ridx$spl == 6 & ridx$type == "test", "idx"], ]
-y_true_all <- list(ytest_1, ytest_2, ytest_3, ytest_4, ytest_5, ytest_6)
+y_true_all <- load_y_true_all(all_y, K = K, t = "test")
 
 ## Weights 
 
@@ -87,7 +73,6 @@ ens_cinll_trf <- lapply(cdftest_cinll, get_ensemble, type = "trafo")
 ens_cirps_l <- lapply(cdftest_cirps, get_ensemble, type = "linear")
 ens_cirps_ll <- lapply(cdftest_cirps, get_ensemble, type = "log-linear")
 ens_cirps_trf <- lapply(cdftest_cirps, get_ensemble, type = "trafo")
-
 
 # Weighted ----------------------------------------------------------------
 
@@ -139,7 +124,6 @@ cal_spl_nll$weights <- "equal"
 cal_spl_rps <- bindr(pat1 = "c_spl_", pat2 = "rps")
 cal_spl_rps$weights <- "equal"
 
-
 # Weighted ----------------------------------------------------------------
 
 ## CI
@@ -187,7 +171,6 @@ cal_spl_rps$mod <- factor(cal_spl_rps$mod)
 cal_spl_rps$weights <- factor(cal_spl_rps$weights)
 cal_spl_rps$method <- factor(cal_spl_rps$method)
 
-
 # Mean calibration of members per split -----------------------------------
 
 # Equal weights (AVG-LIN) -------------------------------------------------
@@ -210,7 +193,6 @@ cal_avg_spl_nll$method <- "avg"
 cal_avg_spl_rps <- bindr(pat1 = "avg_", pat2 = "rps")
 cal_avg_spl_rps$weights <- "equal"
 cal_avg_spl_rps$method <- "avg"
-
 
 # Weighted (AVG-LIN, AVG-LOG, AVG-TRF) ------------------------------------
 
@@ -268,7 +250,6 @@ cal_avg_spl_rps$mod <- factor(cal_avg_spl_rps$mod)
 cal_avg_spl_rps$weights <- factor(cal_avg_spl_rps$weights)
 cal_avg_spl_rps$method <- factor(cal_avg_spl_rps$method)
 
-
 # Individual --------------------------------------------------------------
 
 ## CI
@@ -285,7 +266,6 @@ for (i in seq_len(length(lys_i_cinll))) {
 indiv_cinll <- do.call("rbind", lys_i_cinll)
 indiv_cinll$mod <- "ci"
 
-
 lys_i_cirps <- mapply(function(lys_cdf_all, y_true_all, cumulative,  cuts, emp) {
   cal_indiv(lys_cdf = lys_cdf_all, y_true = y_true_all, 
             cumulative = cumulative, cuts = cuts, emp = emp, custom_cuts_fun = cut_fun)
@@ -298,7 +278,6 @@ for (i in seq_len(length(lys_i_cirps))) {
 indiv_cirps <- do.call("rbind", lys_i_cirps)
 indiv_cirps$mod <- "ci"
 
-
 ###### Combine models
 
 ind_nll <- bindr(pat1 = "indiv", pat2 = "nll")
@@ -309,7 +288,6 @@ ind_rps <- bindr(pat1 = "indiv", pat2 = "rps")
 
 spl_nll <- rbind(cal_spl_nll, cal_avg_spl_nll)
 spl_rps <- rbind(cal_spl_rps, cal_avg_spl_rps)
-
 
 # Average cal across all splits (ensembles) -------------------------------
 
@@ -326,7 +304,6 @@ avg_avg_meths_nll <- avg_across_spl(splitted_avg_nll)
 
 splitted_avg_rps <- cal_avg_spl_rps %>% group_split(method, weights, mod)
 avg_avg_meths_rps <- avg_across_spl(splitted_avg_rps)
-
 
 # Combine all average calibrations across splits --------------------------
 

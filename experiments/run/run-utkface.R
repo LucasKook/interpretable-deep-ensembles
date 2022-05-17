@@ -16,7 +16,7 @@ library(etram)
 # Paths ------------------------------------------------------------------
 
 path <- "~/../data/UTKFace/UTKFace.h5"
-out_dir <- "~/git-repos/MasterThesis/experiments/results/DE/UTKFace/"
+out_dir <- "experiments/results/DE/UTKFace/"
 
 # Params ------------------------------------------------------------------
 

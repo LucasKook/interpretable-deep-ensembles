@@ -17,15 +17,15 @@ library(readr)
 
 im_path <- "~/../data/mela_all/data/train_mela_images/"
 path <- "~/../data/mela_all/data/train.csv"
-out_dir <- "~/git-repos/MasterThesis/experiments/results/DE/melanoma/"
+out_dir <- "experiments/results/DE/melanoma/"
 
 # Params ------------------------------------------------------------------
 
 fml_cond <- target ~ age_s
 fml_uncond <- target ~ 1
-decay <- 1e-4
+decay <- 1e-5
 lr <- 0.01
-epochs <- 50
+epochs <- 500
 spl <- 6
 
 # Load data ---------------------------------------------------------------

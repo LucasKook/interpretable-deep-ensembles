@@ -41,6 +41,21 @@ met_cirps$weights <- "equal"
 indivmet_cirps <- read.csv(file = paste0(in_dir, "indivmet_", fname_cirps, ".csv"))
 indivmet_cirps$mod <- "ci"
 
+## Bootstrap confidence intervals
+
+# ci nll
+f_nll_nw <- list.files(in_dir, pattern = "^boot.*nll.*\\.csv$") # ^: start, $: end, .*: any pattern,
+lys_nll_nw <- lapply(f_nll_nw, function(x) read.csv(paste0(in_dir, x)))
+ci_nll_nw <- do.call("rbind", lys_nll_nw)
+ci_nll_nw$weights <- "equal"
+
+# ci rps
+f_rps_nw <- list.files(in_dir, pattern = "^boot.*rps.*\\.csv$")
+lys_rps_nw <- lapply(f_rps_nw, function(x) read.csv(paste0(in_dir, x)))
+ci_rps_nw <- do.call("rbind", lys_rps_nw)
+ci_rps_nw$weights <- "equal"
+
+
 # Performance weighted ----------------------------------------------------
 
 met_cinll_w <- read.csv(file = paste0(in_dir, "met_", fname_cinll, "_weighted.csv"))
@@ -53,12 +68,29 @@ met_cirps_w$mod <- "ci"
 met_cirps_w[met_cirps_w$method == "avgl", "method"] <- "avg"
 met_cirps_w$weights <- "tuned"
 
+## Bootstrap confidence intervals
+
+# ci nll
+f_nll_w <- list.files(in_dir, pattern = "^wboot.*nll.*\\.csv$")
+lys_nll_w <- lapply(f_nll_w, function(x) read.csv(paste0(in_dir, x)))
+ci_nll_w <- do.call("rbind", lys_nll_w)
+ci_nll_w$weights <- "tuned"
+
+# ci rps
+f_rps_w <- list.files(in_dir, pattern = "^wboot.*rps.*\\.csv$")
+lys_rps_w <- lapply(f_rps_w, function(x) read.csv(paste0(in_dir, x)))
+ci_rps_w <- do.call("rbind", lys_rps_w)
+ci_rps_w$weights <- "tuned"
+
 # Combine -----------------------------------------------------------------
 
 met_cinll_all <- bind_rows(met_cinll, met_cinll_w)
 met_cinll_all$spl <- factor(met_cinll_all$spl)
 met_cirps_all <- bind_rows(met_cirps, met_cirps_w)
 met_cirps_all$spl <- factor(met_cirps_all$spl)
+
+ci_nll <- bind_rows(ci_nll_nw, ci_nll_w)
+ci_rps <- bind_rows(ci_rps_nw, ci_rps_w)
 
 ## Reorder levels 
 
@@ -71,10 +103,12 @@ meths <- c("trafo", "avgtrf",
 met_cinll_all <- relev(met_cinll_all, "metric", ord_met)
 indivmet_cinll <- relev(indivmet_cinll, "metric", ord_met)
 met_cinll_all <- relev(met_cinll_all, "method", meths)
+ci_nll <- relev(ci_nll, "method", meths)
 
 met_cirps_all <- relev(met_cirps_all, "metric", ord_met)
 indivmet_cirps <- relev(indivmet_cirps, "metric", ord_met)
 met_cirps_all <- relev(met_cirps_all, "method", meths)
+ci_rps <- relev(ci_rps, "method", meths)
 
 
 # Performance plots -------------------------------------------------------
@@ -82,20 +116,24 @@ met_cirps_all <- relev(met_cirps_all, "method", meths)
 # Plots NLL
 
 pl_ordnll <- pl_met(spl_met = met_cinll_all, 
+                    ci = ci_nll,
                     xlab = "",
                     metrics = ord_met)
 
 pl_ordnll_indiv <- pl_met(spl_met = met_cinll_all, indiv_met = indivmet_cinll,
+                          ci = ci_nll,
                           xlab = "",
                           metrics = ord_met)
 
 # Plots RPS
 
 pl_ordrps <- pl_met(spl_met = met_cirps_all, 
+                    ci = ci_rps,
                     xlab = "",
                     metrics = ord_met)
 
 pl_ordrps_indiv <- pl_met(spl_met = met_cirps_all, 
+                          ci = ci_rps,
                           indiv_met = indivmet_cirps,
                           xlab = "",
                           metrics = ord_met)
@@ -122,6 +160,7 @@ ggsave(paste0(out_dir, "mnist_ci_wvsnw_indiv.pdf"), height = 7, width = 8)
 
 pl_calnll_indiv <- pl_met(spl_met = met_cinll_all,
                           metrics = cal_met,
+                          ci = ci_nll,
                           indiv_met = indivmet_cinll,
                           ylab = "", xlab = "")
 
@@ -129,6 +168,7 @@ pl_calnll_indiv <- pl_met(spl_met = met_cinll_all,
 
 pl_calrps_indiv <- pl_met(spl_met = met_cirps_all,
                           metrics = cal_met,
+                          ci = ci_rps,
                           indiv_met = indivmet_cirps,
                           ylab = "", xlab = "")
 

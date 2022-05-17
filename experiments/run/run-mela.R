@@ -17,7 +17,7 @@ library(readr)
 
 im_path <- "~/../data/mela_all/data/train_mela_images/"
 path <- "~/../data/mela_all/data/train.csv"
-out_dir <- "~/git-repos/MasterThesis/experiments/results/DE/melanoma/"
+out_dir <- "experiments/results/DE/melanoma/"
 
 # Params ------------------------------------------------------------------
 

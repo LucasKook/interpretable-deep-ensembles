@@ -6,54 +6,36 @@
 
 library(etram)
 
-# Params ------------------------------------------------------------------
+# Directories -------------------------------------------------------------
 
 source("experiments/functions/functions_DE.R")
-
 in_dir <- out_dir <- "experiments/results/DE/MNIST/"
+
+# Params ------------------------------------------------------------------
+
+K <- 10
 
 fname_cinll <- "mnist_ci_lossnll_wsno_augno"
 fname_cirps <- "mnist_ci_lossrps_wsno_augno"
 
-splits <- 6
-ensembles <- 5
-
-# Read data ---------------------------------------------------------------
-
-dat <- dat <- load_data("mnist")
-tab_dat <- dat$tab_dat
-y <- model.matrix(~ 0 + y, data = tab_dat)
-
-ridx <- get_ridx(in_dir, fname = "mnist")
-
 # Load results ------------------------------------------------------------
+
+all_cdf <- read.csv(paste0(in_dir, "mnist_merged_cdf_ci.csv"))
+all_y <- read.csv(paste0(in_dir, "mnist_merged_y.csv"))
 
 ## CDFs all splits
 
 ### CI
-cdftest_cinll <- list_cdfs(in_dir, fname_cinll, splits, ensembles, "test")
-cdfval_cinll <- list_cdfs(in_dir, fname_cinll, splits, ensembles, "val")
-cdftest_cirps <- list_cdfs(in_dir, fname_cirps, splits, ensembles, "test")
-cdfval_cirps <- list_cdfs(in_dir, fname_cirps, splits, ensembles, "val")
+cdftest_cinll <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "nll", t = "test")
+cdfval_cinll <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "nll", t = "val")
 
-### Y true
+cdftest_cirps <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "rps", t = "test")
+cdfval_cirps <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "rps", t = "val")
 
-ytest_1 <- y[ridx[ridx$spl == 1 & ridx$type == "test", "idx"], ]
-ytest_2 <- y[ridx[ridx$spl == 2 & ridx$type == "test", "idx"], ]
-ytest_3 <- y[ridx[ridx$spl == 3 & ridx$type == "test", "idx"], ]
-ytest_4 <- y[ridx[ridx$spl == 4 & ridx$type == "test", "idx"], ]
-ytest_5 <- y[ridx[ridx$spl == 5 & ridx$type == "test", "idx"], ]
-ytest_6 <- y[ridx[ridx$spl == 6 & ridx$type == "test", "idx"], ]
-y_true_all <- list(ytest_1, ytest_2, ytest_3, ytest_4, ytest_5, ytest_6)
+## Y true
 
-yval_1 <- y[ridx[ridx$spl == 1 & ridx$type == "val", "idx"], ]
-yval_2 <- y[ridx[ridx$spl == 2 & ridx$type == "val", "idx"], ]
-yval_3 <- y[ridx[ridx$spl == 3 & ridx$type == "val", "idx"], ]
-yval_4 <- y[ridx[ridx$spl == 4 & ridx$type == "val", "idx"], ]
-yval_5 <- y[ridx[ridx$spl == 5 & ridx$type == "val", "idx"], ]
-yval_6 <- y[ridx[ridx$spl == 6 & ridx$type == "val", "idx"], ]
-y_true_val_all <- list(yval_1, yval_2, yval_3, yval_4, yval_5, yval_6)
-
+y_true_all <- load_y_true_all(all_y, K = K, t = "test")
+y_true_val_all <- load_y_true_all(all_y, K = K, t = "val")
 
 # Evaluation --------------------------------------------------------------
 

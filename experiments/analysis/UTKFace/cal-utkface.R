@@ -6,18 +6,13 @@
 
 library(etram)
 library(caret)
-library(readr)
-library(rhdf5)
 library(Hmisc)
 
 # Params ------------------------------------------------------------------
 
-ensembles <- 5
-spl <- 6
+K <- 7
 
 source("experiments/functions/functions_DE.R")
-
-path <- "~/../data/UTKFace/UTKFace.h5"
 in_dir <- out_dir <- "experiments/results/DE/UTKFace/"
 
 fname_silscsnll <- "utkface_silscs_lossnll_wsyes_augno"
@@ -30,8 +25,7 @@ fname_cinll <- "utkface_ci_lossnll_wsyes_augno"
 fname_cirps <- "utkface_ci_lossrps_wsyes_augno"
 
 fname_sils <- "utkface_sils"
-fname_si <- "utkface_si"
-
+fname_silsrps <- "utkface_sils_rps"
 
 # Functions ---------------------------------------------------------------
 
@@ -39,56 +33,50 @@ cut_fun <- function(x) {
   q1 <- quantile(x, 0.05)
   q2 <- quantile(x, 0.95)
   cstep <- (q2 - q1) / 9
-  between <- seq(from = q1, to = q2, by = cstep)
-  cuts <- c(0, between)
+  cuts <- seq(from = q1, to = q2, by = cstep)
   return(cuts)
 }
 
-
-# Read data ---------------------------------------------------------------
-
-dat <- load_data("utkface", path = path)
-tab_dat <- dat$tab_dat
-y <- model.matrix(~ 0 + age_group, data = tab_dat)
-
-ridx <- get_ridx(in_dir, fname = "utkface")
+# Load results ------------------------------------------------------------
 
 # Load results ------------------------------------------------------------
 
-## CDFs all spl
+## all CDF
+cdf_files <- list.files(path = in_dir,
+                        pattern = paste0("utkface_merged_cdf.*\\.csv$"))
+cdf_files <- lapply(cdf_files, function(fname) {
+  read.csv(paste0(in_dir, fname))
+})
+all_cdf <- do.call("rbind", cdf_files)
+
+## all Y
+all_y <- read.csv(paste0(in_dir, "utkface_merged_y.csv"))
+
+## CDFs all splits
 
 ### SI-LS-CS
-cdftest_silscsnll <- list_cdfs(in_dir, fname_silscsnll, spl, ensembles, "test")
-cdftest_silscsrps <- list_cdfs(in_dir, fname_silscsrps, spl, ensembles, "test")
-
-### CI-LS
-cdftest_cilsnll <- list_cdfs(in_dir, fname_cilsnll, spl, ensembles, "test")
-cdftest_cilsrps <- list_cdfs(in_dir, fname_cilsrps, spl, ensembles, "test")
+cdftest_silscsnll <- load_lys_cdf_all(all_cdf, m = "silscs", K = K, l = "nll", t = "test")
+cdftest_silscsrps <- load_lys_cdf_all(all_cdf, m = "silscs", K = K, l = "rps", t = "test")
 
 ### SI-CS
-cdftest_sicsnll <- list_cdfs(in_dir, fname_sicsnll, spl, ensembles, "test")
-cdftest_sicsrps <- list_cdfs(in_dir, fname_sicsrps, spl, ensembles, "test")
+cdftest_sicsnll <- load_lys_cdf_all(all_cdf, m = "sics", K = K, l = "nll", t = "test")
+cdftest_sicsrps <- load_lys_cdf_all(all_cdf, m = "sics", K = K, l = "rps", t = "test")
+
+### CI-LS
+cdftest_cilsnll <- load_lys_cdf_all(all_cdf, m = "cils", K = K, l = "nll", t = "test")
+cdftest_cilsrps <- load_lys_cdf_all(all_cdf, m = "cils", K = K, l = "rps", t = "test")
 
 ### CI
-cdftest_cinll <- list_cdfs(in_dir, fname_cinll, spl, ensembles, "test")
-cdftest_cirps <- list_cdfs(in_dir, fname_cirps, spl, ensembles, "test")
+cdftest_cinll <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "nll", t = "test")
+cdftest_cirps <- load_lys_cdf_all(all_cdf, m = "ci", K = K, l = "rps", t = "test")
 
-### SI
-cdftest_si <- list_cdfs(in_dir, fname_si, spl, ensembles = NULL, "test")
-
-### SILS
-cdftest_sils <- list_cdfs(in_dir, fname_sils, spl, ensembles = NULL, "test")
-
+### SI-LS
+cdftest_sils <- load_lys_cdf_all(all_cdf, m = "sils", K = K, l = "nll", t = "test")
+cdftest_silsrps <- load_lys_cdf_all(all_cdf, m = "sils", K = K, l = "rps", t = "test")
 
 ## Y true
 
-ytest_1 <- y[ridx[ridx$spl == 1 & ridx$type == "test", "idx"], ]
-ytest_2 <- y[ridx[ridx$spl == 2 & ridx$type == "test", "idx"], ]
-ytest_3 <- y[ridx[ridx$spl == 3 & ridx$type == "test", "idx"], ]
-ytest_4 <- y[ridx[ridx$spl == 4 & ridx$type == "test", "idx"], ]
-ytest_5 <- y[ridx[ridx$spl == 5 & ridx$type == "test", "idx"], ]
-ytest_6 <- y[ridx[ridx$spl == 6 & ridx$type == "test", "idx"], ]
-y_true_all <- list(ytest_1, ytest_2, ytest_3, ytest_4, ytest_5, ytest_6)
+y_true_all <- load_y_true_all(all_y, K = K, t = "test")
 
 ## Weights 
 
@@ -140,7 +128,6 @@ w_cirps_trf <- extract_w(w_cirps, meth = "trafo")
 # Ensembles ---------------------------------------------------------------
 
 # Equal weights -----------------------------------------------------------
-
 
 ## SILSCS
 
@@ -796,15 +783,9 @@ ind_rps <- bindr(pat1 = "indiv", pat2 = "rps")
 # Calibration of ref models -----------------------------------------------
 
 # list of cdf (not nested list)
-cdftest_si <- lapply(cdftest_si, function(x) do.call(rbind, x))
 cdftest_sils <- lapply(cdftest_sils, function(x) do.call(rbind, x))
+cdftest_silsrps <- lapply(cdftest_silsrps, function(x) do.call(rbind, x))
 
-cal_spl_si <- comb_ens_cal(lys_cdf_ens = cdftest_si, y_true_all = y_true_all,
-                           emp = TRUE, custom_cuts_fun = cut_fun)
-cal_spl_si$mod <- "si"
-cal_spl_si$weights <- "equal"
-cal_spl_si$method <- NA
-cal_w_spl_si <- cal_spl_si %>% mutate(weights = "tuned")
 
 cal_spl_sils <- comb_ens_cal(lys_cdf_ens = cdftest_sils, y_true_all = y_true_all,
                              emp = TRUE, custom_cuts_fun = cut_fun)
@@ -813,14 +794,22 @@ cal_spl_sils$weights <- "equal"
 cal_spl_sils$method <- NA
 cal_w_spl_sils <- cal_spl_sils %>% mutate(weights = "tuned")
 
-cal_spl_refs <- rbind(cal_spl_si, cal_w_spl_si,
-                      cal_spl_sils, cal_w_spl_sils)
+cal_spl_sils <- bind_rows(cal_spl_sils, cal_w_spl_sils)
+
+cal_spl_silsrps <- comb_ens_cal(lys_cdf_ens = cdftest_silsrps, y_true_all = y_true_all,
+                                emp = TRUE, custom_cuts_fun = cut_fun)
+cal_spl_silsrps$mod <- "sils"
+cal_spl_silsrps$weights <- "equal"
+cal_spl_silsrps$method <- NA
+cal_w_spl_silsrps <- cal_spl_silsrps %>% mutate(weights = "tuned")
+
+cal_spl_silsrps <- bind_rows(cal_spl_silsrps, cal_w_spl_silsrps)
 
 
 # Combine all calibrations of single splits -------------------------------
 
-spl_nll <- rbind(cal_spl_nll, cal_avg_spl_nll, cal_spl_refs)
-spl_rps <- rbind(cal_spl_rps, cal_avg_spl_rps, cal_spl_refs)
+spl_nll <- rbind(cal_spl_nll, cal_avg_spl_nll, cal_spl_sils)
+spl_rps <- rbind(cal_spl_rps, cal_avg_spl_rps, cal_spl_silsrps)
 
 
 # Average cal across all splits (ensembles) -------------------------------
@@ -841,13 +830,16 @@ avg_avg_meths_rps <- avg_across_spl(splitted_avg_rps)
 
 # Average across splits (refs) --------------------------------------------
 
-splitted_refs <- cal_spl_refs %>% group_split(weights, mod)
-avg_refs <- avg_across_spl(splitted_refs)
+splitted_sils <- cal_spl_sils %>% group_split(weights, mod)
+avg_sils <- avg_across_spl(splitted_sils)
+
+splitted_silsrps <- cal_spl_silsrps %>% group_split(weights, mod)
+avg_silsrps <- avg_across_spl(splitted_silsrps)
 
 # Combine all average calibrations across splits --------------------------
 
-avg_nll <- rbind(avg_meths_nll, avg_avg_meths_nll, avg_refs)
-avg_rps <- rbind(avg_meths_rps, avg_avg_meths_rps, avg_refs)
+avg_nll <- rbind(avg_meths_nll, avg_avg_meths_nll, avg_sils)
+avg_rps <- rbind(avg_meths_rps, avg_avg_meths_rps, avg_silsrps)
 
 
 # Save results ------------------------------------------------------------

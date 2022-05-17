@@ -27,6 +27,8 @@ fname_cirps <- "utkface_ci_lossrps_wsyes_augno"
 
 fname_sils <- "utkface_sils"
 fname_si <- "utkface_si"
+fname_silsrps <- "utkface_sils_rps"
+fname_sirps <- "utkface_si_rps"
 
 spl <- 6
 ens <- 5
@@ -77,15 +79,15 @@ indiv_cinll$mod <- "ci"
 
 ### SI
 
-met_si <-  read.csv(file = paste0(in_dir, "met_", fname_si, ".csv"))
-met_si$mod <- "si"
-met_si$weights <- "equal"
+met_sinll <-  read.csv(file = paste0(in_dir, "met_", fname_si, ".csv"))
+met_sinll$mod <- "si"
+met_sinll$weights <- "equal"
 
 ### SILS
 
-met_sils <-  read.csv(file = paste0(in_dir, "met_", fname_sils, ".csv"))
-met_sils$mod <- "sils"
-met_sils$weights <- "equal"
+met_silsnll <-  read.csv(file = paste0(in_dir, "met_", fname_sils, ".csv"))
+met_silsnll$mod <- "sils"
+met_silsnll$weights <- "equal"
 
 
 ## RPS
@@ -130,6 +132,34 @@ met_cirps$weights <- "equal"
 indiv_cirps <- read.csv(file = paste0(in_dir, "indivmet_", fname_cirps, ".csv"))
 indiv_cirps$mod <- "ci"
 
+### SI
+
+met_sirps <-  read.csv(file = paste0(in_dir, "met_", fname_sirps, ".csv"))
+met_sirps$mod <- "si"
+met_sirps$weights <- "equal"
+
+### SILS
+
+met_silsrps <-  read.csv(file = paste0(in_dir, "met_", fname_silsrps, ".csv"))
+met_silsrps$mod <- "sils"
+met_silsrps$weights <- "equal"
+
+
+## Bootstrap confidence intervals
+
+# ci nll
+f_nll_nw <- list.files(in_dir, pattern = "^boot.*nll.*\\.csv$") # ^: start, $: end, .*: any pattern,
+lys_nll_nw <- lapply(f_nll_nw, function(x) read.csv(paste0(in_dir, x)))
+ci_nll_nw <- do.call("rbind", lys_nll_nw)
+ci_nll_nw$weights <- "equal"
+
+# ci rps
+f_rps_nw <- list.files(in_dir, pattern = "^boot.*rps.*\\.csv$")
+lys_rps_nw <- lapply(f_rps_nw, function(x) read.csv(paste0(in_dir, x)))
+ci_rps_nw <- do.call("rbind", lys_rps_nw)
+ci_rps_nw$weights <- "equal"
+
+
 # Performance results weighted --------------------------------------------
 
 ## NLL
@@ -160,13 +190,13 @@ met_cinll_w$weights <- "tuned"
 
 ### SI
 
-met_si_w <- met_si
-met_si_w$weights <- "tuned"
+met_sinll_w <- met_sinll
+met_sinll_w$weights <- "tuned"
 
 ### SILS
 
-met_sils_w <- met_sils
-met_sils_w$weights <- "tuned"
+met_silsnll_w <- met_silsnll
+met_silsnll_w$weights <- "tuned"
 
 
 ## RPS
@@ -195,12 +225,36 @@ met_cirps_w <- read.csv(file = paste0(in_dir, "met_", fname_cirps, "_weighted.cs
 met_cirps_w$mod <- "ci"
 met_cirps_w$weights <- "tuned"
 
+### SI
+
+met_sirps_w <- met_sirps
+met_sirps_w$weights <- "tuned"
+
+### SILS
+
+met_silsrps_w <- met_silsrps
+met_silsrps_w$weights <- "tuned"
+
+
+## Bootstrap confidence intervals
+
+# ci nll
+f_nll_w <- list.files(in_dir, pattern = "^wboot.*nll.*\\.csv$")
+lys_nll_w <- lapply(f_nll_w, function(x) read.csv(paste0(in_dir, x)))
+ci_nll_w <- do.call("rbind", lys_nll_w)
+ci_nll_w$weights <- "tuned"
+
+# ci rps
+f_rps_w <- list.files(in_dir, pattern = "^wboot.*rps.*\\.csv$")
+lys_rps_w <- lapply(f_rps_w, function(x) read.csv(paste0(in_dir, x)))
+ci_rps_w <- do.call("rbind", lys_rps_w)
+ci_rps_w$weights <- "tuned"
+
 
 # Combine -----------------------------------------------------------------
 
 met_negloglik <- bindr(pat1 = "met", pat2 = "nll")
 met_negloglik[met_negloglik$method == "avgl", "method"] <- "avg"
-met_negloglik <- bind_rows(met_negloglik, met_si, met_si_w, met_sils, met_sils_w)
 met_negloglik[met_negloglik$mod %in% c("si", "sils"), "method"] <- "ref"
 met_negloglik$spl <- factor(met_negloglik$spl)
 
@@ -208,11 +262,18 @@ ind_negloglik <- bindr(pat1 = "indiv", pat2 = "nll")
 
 met_ranked <- bindr(pat1 = "met", pat2 = "rps")
 met_ranked[met_ranked$method == "avgl", "method"] <- "avg"
-met_ranked <- bind_rows(met_ranked,met_si, met_si_w, met_sils, met_sils_w)
 met_ranked[met_ranked$mod %in% c("si", "sils"), "method"] <- "ref"
 met_ranked$spl <- factor(met_ranked$spl)
 
 ind_ranked <- bindr(pat1 = "indiv", pat2 = "rps")
+
+# confidence intervals
+ci_nll <- bind_rows(ci_nll_nw, ci_nll_w, ci_nll_nw %>% 
+                      filter(mod %in% c("si", "sils")) %>%
+                      mutate(weights = "tuned"))
+ci_rps <- bind_rows(ci_rps_nw, ci_rps_w, ci_rps_nw %>% 
+                      filter(mod %in% c("si", "sils")) %>%
+                      mutate(weights = "tuned"))
 
 # Reorder levels ----------------------------------------------------------
 
@@ -225,11 +286,13 @@ mods <- c("si", "sils", "sics", "silscs", "ci", "cils")
 
 met_negloglik <- relev(met_negloglik, "metric", c(ord_metrics))
 met_negloglik <- relev(met_negloglik, "method", meths)
+ci_nll <- relev(ci_nll, "method", meths)
 met_negloglik <- relev(met_negloglik, "mod", mods)
 ind_negloglik <- relev(ind_negloglik, "metric", c(ord_metrics))
 
-met_ranked <- relev(met_ranked, "method", meths)
 met_ranked <- relev(met_ranked, "metric", c(ord_metrics))
+met_ranked <- relev(met_ranked, "method", meths)
+ci_rps <- relev(ci_rps, "method", meths)
 met_ranked <- relev(met_ranked, "mod", mods)
 ind_ranked <- relev(ind_ranked, "metric", c(ord_metrics))
 
@@ -242,12 +305,14 @@ met_negloglik_noref$mod <- factor(met_negloglik_noref$mod, levels = c("sics", "s
 met_negloglik_noref$method <- factor(met_negloglik_noref$method, levels = c("trafo", "avgtrf", 
                                                                             "log-linear", "avgll",
                                                                             "linear", "avg"))
-pl_ordnll_noref <- pl_met(spl_met = met_negloglik_noref, 
+pl_ordnll_noref <- pl_met(spl_met = met_negloglik_noref,
+                          ci = ci_nll,
                           metrics = ord_metrics)
 
 # with indiv
 pl_ordnll_indiv <- pl_met(spl_met = met_negloglik,
                           indiv_met = ind_negloglik,
+                          ci = ci_nll,
                           metrics = ord_metrics,
                           ref = c("si", "sils"))
 
@@ -258,11 +323,13 @@ met_ranked_noref$method <- factor(met_ranked_noref$method, levels = c("trafo", "
                                                                       "log-linear", "avgll",
                                                                       "linear", "avg"))
 pl_ordrps_noref <- pl_met(spl_met = met_ranked_noref[is.finite(met_ranked_noref$val), ], 
+                          ci = ci_rps,
                           metrics = ord_metrics)
 
 # with indiv
 pl_ordrps_indiv <- pl_met(spl_met = met_ranked[is.finite(met_ranked$val), ],
                           indiv_met = ind_ranked[is.finite(ind_ranked$val), ],
+                          ci = ci_rps,
                           metrics = ord_metrics,
                           ref = c("si", "sils"))
 
@@ -285,11 +352,13 @@ ggsave(paste0(out_dir, "utkface_wvsnw_indiv.pdf"), height = 13.5, width = 11.5)
 
 pl_ordnll_rel <- pl_met(spl_met = met_negloglik,
                         metrics = ord_metrics,
+                        ci = ci_nll,
                         ref = "si",
                         rel = TRUE)
 
 pl_ordrps_rel <-  pl_met(spl_met = met_ranked[is.finite(met_ranked$val), ],
                          metrics = ord_metrics,
+                         ci = ci_rps,
                          ref = "si",
                          rel = TRUE)
 
@@ -305,12 +374,14 @@ ggsave(paste0(out_dir, "utkface_wvsnw_rel.pdf"), height = 13, width = 11.5)
 
 pl_calnll_indiv <- pl_met(spl_met = met_negloglik,
                           metrics = cal_metrics,
+                          ci = ci_nll,
                           indiv_met = ind_negloglik,
                           ref = c("si", "sils"),
                           ylab = "")
 
 pl_calrps_indiv <- pl_met(spl_met = met_ranked,
                           metrics = cal_metrics,
+                          ci = ci_rps,
                           indiv_met = ind_ranked,
                           ref = c("si", "sils"),
                           ylab = "")
