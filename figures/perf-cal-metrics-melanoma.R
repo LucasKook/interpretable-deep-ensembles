@@ -12,10 +12,10 @@ library(etram)
 
 # Params -------------------------------------------------------------------
 
-source("experiments/functions/functions_DE.R")
+source("../experiments/functions/functions_DE.R")
 
-in_dir <- "experiments/results/DE/melanoma/"
-out_dir <- "experiments/results/DE/melanoma/figures/"
+in_dir <- "../experiments/results/DE/melanoma/"
+out_dir <- "./"
 
 fname_cilsnll <- "mela_silscs_lossnll_wsyes_augno"
 fname_cilsrps <- "mela_silscs_lossrps_wsyes_augno"

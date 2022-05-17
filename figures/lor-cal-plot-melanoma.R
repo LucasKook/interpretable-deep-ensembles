@@ -16,7 +16,7 @@ library(ggpp) # position dodgenudge
 source("experiments/functions/functions_DE.R")
 
 in_dir <- "experiments/results/DE/melanoma/"
-out_dir <- "experiments/results/DE/melanoma/figures/"
+out_dir <- "figures/"
 
 splits <- 6
 ensembles <- 5

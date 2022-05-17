@@ -12,10 +12,10 @@ library(etram)
 
 # Params -------------------------------------------------------------------
 
-source("experiments/functions/functions_DE.R")
+source("../experiments/functions/functions_DE.R")
 
-in_dir <- "experiments/results/DE/MNIST/"
-out_dir <- "experiments/results/DE/MNIST/figures/"
+in_dir <- "../experiments/results/DE/MNIST/"
+out_dir <- "./"
 
 fname_cinll <- "mnist_ci_lossnll_wsno_augno"
 fname_cirps <- "mnist_ci_lossrps_wsno_augno"

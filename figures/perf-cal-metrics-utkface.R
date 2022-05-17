@@ -11,10 +11,10 @@ library(patchwork)
 
 # Params -------------------------------------------------------------------
 
-source("experiments/functions/functions_DE.R")
+source("../experiments/functions/functions_DE.R")
 
-in_dir <- "experiments/results/DE/UTKFace/"
-out_dir <- "experiments/results/DE/UTKFace/figures/"
+in_dir <- "../experiments/results/DE/UTKFace/"
+out_dir <- "./"
 
 fname_silscsnll <- "utkface_silscs_lossnll_wsyes_augno"
 fname_silscsrps <- "utkface_silscs_lossrps_wsyes_augno"
