@@ -12,9 +12,9 @@ if (identical(args, character(0))) {
   mod <- "ci"
   fname <- paste0("mela_", mod, "_loss", loss, "_wsyes_augno")
 } else {
-  loss <- args$loss
-  fml <- as.formula(args$formula)
-  mod <- args$mod
+  loss <- args[1]
+  fml <- as.formula(args[2])
+  mod <- args[3]
   fname <- paste0("mela_", mod, "_loss", loss, "_wsyes_augno")
 }
 
