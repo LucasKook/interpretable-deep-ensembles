@@ -12,10 +12,10 @@ library(ggpp) # position dodgenudge
 
 # Params ------------------------------------------------------------------
 
-source("experiments/functions/functions_DE.R")
+source("../experiments/functions/functions_DE.R")
 
-in_dir <- "experiments/results/DE/UTKFace/"
-out_dir <- "experiments/results/DE/UTKFace/figures/"
+in_dir <- "../experiments/results/DE/UTKFace/"
+out_dir <- "./"
 
 splits <- 6
 ensembles <- 5
