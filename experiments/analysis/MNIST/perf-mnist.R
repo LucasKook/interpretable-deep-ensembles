@@ -20,7 +20,11 @@ fname_cirps <- "mnist_ci_lossrps_wsno_augno"
 
 # Load results ------------------------------------------------------------
 
-all_cdf <- read.csv(paste0(in_dir, "mnist_merged_cdf_ci.csv"))
+## all CDF, Y
+cdf_nll <- read.csv(paste0(in_dir, "mnist_merged_cdf_cinll.csv"))
+cdf_rps <- read.csv(paste0(in_dir, "mnist_merged_cdf_cirps.csv"))
+all_cdf <- rbind(cdf_nll, cdf_rps)
+
 all_y <- read.csv(paste0(in_dir, "mnist_merged_y.csv"))
 
 ## CDFs all splits

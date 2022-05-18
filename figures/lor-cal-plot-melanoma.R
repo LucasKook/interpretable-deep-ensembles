@@ -20,7 +20,6 @@ out_dir <- "figures/"
 
 splits <- 6
 ensembles <- 5
-nvars <- 1
 
 fname_cilsnll <- "mela_silscs_lossnll_wsyes_augno"
 fname_cilsrps <- "mela_silscs_lossrps_wsyes_augno"
@@ -66,94 +65,10 @@ avg + plot_layout(guides = "collect")
 
 # Load results log OR -----------------------------------------------------
 
-# sils
-sils_files <- list.files(path = in_dir,
-                         pattern = paste0(fname_sils, "_lor"))
+indivnll <- read.csv(paste0(in_dir, "lor_nll.csv"))
+indivrps <- read.csv(paste0(in_dir, "lor_rps.csv"))
 
-sils_lor <- lapply(sils_files, function(fname) {
-  read.csv(paste0(in_dir, fname))
-})
-
-sils_lor <- do.call("rbind", sils_lor)
-sils_lor <- sils_lor %>% gather(key = "var", value = "lor")
-sils_lor$var <- factor("s_age")
-sils_lor$mod <- "sils"
-sils_lor$spl <- factor(rep(1:splits, nvars))
-silsnll_indivlor <- sils_lor %>% mutate(w = 1)
-
-# sils rps
-silsrps_files <- list.files(path = in_dir,
-                            pattern = paste0(fname_silsrps, "_lor"))
-
-silsrps_lor <- lapply(silsrps_files, function(fname) {
-  read.csv(paste0(in_dir, fname))
-})
-
-silsrps_lor <- do.call("rbind", silsrps_lor)
-silsrps_lor <- silsrps_lor %>% gather(key = "var", value = "lor")
-silsrps_lor$var <- factor("s_age")
-silsrps_lor$mod <- "sils"
-silsrps_lor$spl <- factor(rep(1:splits, nvars))
-silsrps_indivlor <- silsrps_lor %>% mutate(w = 1)
-
-
-# cils nll
-cilsnll_files <- list.files(path = in_dir,
-                            pattern = paste0(fname_cilsnll, "_lor"))
-
-cilsnll_lor <- lapply(cilsnll_files, function(fname) {
-  read.csv(paste0(in_dir, fname))
-})
-
-# Trafo weights
-w_cilsnll <- read.csv(paste0(in_dir, "w_", fname_cilsnll, ".csv"))
-w_cilsnll_trf <- extract_w(w_cilsnll, meth = "trafo")
-w_cilsnll_trf <- w_cilsnll_trf %>% do.call("rbind", .)
-
-cilsnll_indivlor <- do.call("rbind", cilsnll_lor)
-cilsnll_indivlor <- cilsnll_indivlor %>% gather(key = "var", value = "lor")
-cilsnll_indivlor$var <- factor(cilsnll_indivlor$var)
-cilsnll_indivlor$mod <- factor("cils")
-cilsnll_indivlor$spl <- factor(rep(1:splits, each = ensembles))
-
-cilsnll_indivlor$w <- NA
-for (s in seq_len(splits)) {
-  for (v in unique(cilsnll_indivlor$var)) {
-    cilsnll_indivlor[cilsnll_indivlor$spl == s & cilsnll_indivlor$var == v, "w"] <- w_cilsnll_trf[s, ]
-  }
-}
-
-# cils rps
-cilsrps_files <- list.files(path = in_dir,
-                            pattern = paste0(fname_cilsrps, "_lor"))
-
-cilsrps_lor <- lapply(cilsrps_files, function(fname) {
-  read.csv(paste0(in_dir, fname))
-})
-
-# Trafo weights
-w_cilsrps <- read.csv(paste0(in_dir, "w_", fname_cilsrps, ".csv"))
-w_cilsrps_trf <- extract_w(w_cilsrps, meth = "trafo")
-w_cilsrps_trf <- w_cilsrps_trf %>% do.call("rbind", .)
-
-cilsrps_indivlor <- do.call("rbind", cilsrps_lor)
-cilsrps_indivlor <- cilsrps_indivlor %>% gather(key = "var", value = "lor")
-cilsrps_indivlor$var <- factor(cilsrps_indivlor$var)
-cilsrps_indivlor$mod <- factor("cils")
-cilsrps_indivlor$spl <- factor(rep(1:splits, each = ensembles))
-
-cilsrps_indivlor$w <- NA
-for (s in seq_len(splits)) {
-  for (v in unique(cilsrps_indivlor$var)) {
-    cilsrps_indivlor[cilsrps_indivlor$spl == s & cilsrps_indivlor$var == v, "w"] <- w_cilsrps_trf[s, ]
-  }
-}
-
-
-indivnll <- bindr(pat1 = "indivlor", pat2 = "nll")
 indivnll$mod <- factor(indivnll$mod, levels = c("sils", "cils"))
-
-indivrps <- bindr(pat1 = "indivlor", pat2 = "rps")
 indivrps$mod <- factor(indivrps$mod, levels = c("sils", "cils"))
 
 # Plot --------------------------------------------------------------------

@@ -10,7 +10,7 @@
 pl_met <- function(spl_met,
                    indiv_met = NULL,
                    ci,
-                   ref = NULL, 
+                   ref = NULL,
                    rel = FALSE,
                    weighted = TRUE,
                    metrics = c("binnll", "brier", "eauc", "ebinacc"),
@@ -70,15 +70,15 @@ pl_met <- function(spl_met,
     sval <- spl_met %>%
       {if (weighted) filter(., mod == "sils", weights == "equal") else filter(., mod == "sils")} %>%
       dplyr::select(val, spl, metric)
-    
+
     spl_met <- left_join(spl_met, sval, by = c("metric", "spl"))
-    
-    spl_met <- spl_met %>% 
+
+    spl_met <- spl_met %>%
       {if (weighted) group_by(., mod, method, weights) else group_by(., mod, method)} %>%
       mutate(val = val.x - val.y) %>%
       filter(mod != "sils")
-    
-    spl_met$mod <- factor(spl_met$mod, 
+
+    spl_met$mod <- factor(spl_met$mod,
                           levels = levels(spl_met$mod)[!(levels(spl_met$mod) %in% "sils")])
   }
   # same levels
@@ -86,12 +86,12 @@ pl_met <- function(spl_met,
   ci <- ci %>% filter(mod %in% unique(spl_met$mod)) %>%
     mutate(mod = factor(mod, levels = levels(spl_met$mod)))
 
-  ggplot(data = spl_met %>% filter(metric %in% metrics, !(mod %in% ref)), 
+  ggplot(data = spl_met %>% filter(metric %in% metrics, !(mod %in% ref)),
          aes(x = mod, y = val, group = interaction(mod, method),
              color = method, shape = spl)) +
-    (if (weighted) facet_grid(weights ~ metric, scales = "free_x", 
-                              labeller = labeller(.cols = facet_labs, .rows = label_both)) 
-     else facet_grid(~ metric, scales = "free_x", 
+    (if (weighted) facet_grid(weights ~ metric, scales = "free_x",
+                              labeller = labeller(.cols = facet_labs, .rows = label_both))
+     else facet_grid(~ metric, scales = "free_x",
                      labeller = labeller(.cols = facet_labs, .rows = label_both))) +
     geom_beeswarm(dodge.width = 0.75, size = 0.7, alpha = 0.55) +
     (if (rel) geom_hline(yintercept = 0, alpha = 0.2)) +
@@ -108,7 +108,7 @@ pl_met <- function(spl_met,
                                       aes(x = mod, y = val, shape = spl))) +
     (if(!is.null(indiv_met)) geom_beeswarm(inherit.aes = FALSE,
                                            data = indiv_met %>% filter(metric %in% metrics),
-                                           aes(x = mod, y = val), 
+                                           aes(x = mod, y = val),
                                            alpha = 0.2, size = 0.3, dodge.width = 1)) +
     stat_summary(fun = mean, geom = "point", position = position_dodge2(width = 0.75),
                  shape = "diamond",
@@ -116,10 +116,10 @@ pl_met <- function(spl_met,
     geom_errorbar(data = ci %>% {if (!rel) filter(., metric %in% metrics) %>%
                                            mutate(metric = factor(metric, levels = metrics))
                                  else filter(., metric %in% paste0("d", metrics)) %>%
-                                      mutate(metric = factor(sub('.', '', metric), levels = metrics))}, 
+                                      mutate(metric = factor(sub('.', '', metric), levels = metrics))},
                   aes(x = mod, ymin = lwr, ymax = upr,
                       group = interaction(mod, method),
-                      color = method), 
+                      color = method),
                   position = position_dodge(width = 0.75),
                   size = 0.3, width = ebarwidth,
                   inherit.aes = FALSE) +
@@ -129,7 +129,7 @@ pl_met <- function(spl_met,
                                      shape = "diamond",
                                      data = spl_met %>% filter(mod %in% ref, metric %in% metrics),
                                      aes(x = mod, y = val),
-                                     color = col_ref, size = 1.8)) + 
+                                     color = col_ref, size = 1.8)) +
     labs(x = xlab, y = if (!rel) ylab else parse(text = ylab_rel)) +
     scale_color_manual(name = legend_title,
                        labels = if (!is.null(ref))
@@ -150,7 +150,7 @@ pl_met <- function(spl_met,
           panel.grid.major.y = element_blank(),
           legend.position = legend_pos,
           strip.background = element_rect(fill = "white")) +
-    (if (!ticks) theme(axis.text.y = element_blank(), 
+    (if (!ticks) theme(axis.text.y = element_blank(),
                        axis.ticks.y = element_blank())) +
     (if (!legend) theme(legend.position = "none")) +
     coord_flip()
@@ -173,18 +173,18 @@ pl_or <- function(indiv,
                                "x_8" = expression(x[8]),
                                "x_9" = expression(x[9]),
                                "x_10" = expression(x[10]),
-                               "mrs_before4" = "mRS at BL 4", 
+                               "mrs_before4" = "mRS at BL 4",
                                "mrs_before2" = "mRS at BL 2",
-                               "nihss_baseline" = "NIHSS at BL", 
+                               "nihss_baseline" = "NIHSS at BL",
                                "mrs_before3" = "mRS at BL 3",
-                               "mrs_before1" = "mRS at BL 1", 
+                               "mrs_before1" = "mRS at BL 1",
                                "rf_hypertoniay" = "hypertension",
-                               "stroke_beforey" = "prior stroke", 
+                               "stroke_beforey" = "prior stroke",
                                "rf_smokery" = "smoking",
-                               "rf_chdy" = "CHD", 
-                               "rf_atrial_fibrillationy" = "atrial fibrillation",        
-                               "age" = "age", 
-                               "tia_beforey" = "prior TIA", 
+                               "rf_chdy" = "CHD",
+                               "rf_atrial_fibrillationy" = "atrial fibrillation",
+                               "age" = "age",
+                               "tia_beforey" = "prior TIA",
                                "rf_diabetesy" = "diabetes",
                                "sexm" = "male",
                                "rf_hypercholesterolemiay" = "hypercholesterolemia"),
@@ -208,7 +208,7 @@ pl_or <- function(indiv,
                   pooled_only = FALSE,
                   ci_sils = NULL,
                   order_vars = TRUE) {
-  
+
   uw <- indiv %>% group_by(var, mod, spl) %>% summarise(avg = mean(lor),
                                                         lwr = bs(lor, weights = rep(1, length(lor)))[1],
                                                         upr = bs(lor, weights = rep(1, length(lor)))[2])
@@ -217,7 +217,7 @@ pl_or <- function(indiv,
   uw_pooled <- indiv %>% filter(mod != "sils") %>% group_by(var, mod, spl) %>% summarise(bs = bs(lor, ret_all = T)) %>%
     group_by(var, mod) %>% summarise(lwr = quantile(bs, 0.025, na.rm = T),
                                      upr = quantile(bs, 0.975, na.rm = T))
-  
+
   if (is.null(ci_sils)) {
     uw_pooled_sils <- indiv %>% filter(mod == "sils") %>% group_by(var, mod) %>% summarise(bs = bs(lor, ret_all = T)) %>%
       group_by(var, mod) %>% summarise(lwr = quantile(bs, 0.025, na.rm = T),
@@ -226,11 +226,11 @@ pl_or <- function(indiv,
   } else {
     uw_pooled <- bind_rows(uw_pooled, ci_sils)
   }
-  
+
   uw_pooled <- uw_pooled %>% mutate(weights = "equal")
   uw_pooled_avg <- uw %>% group_by(var, mod) %>% summarise(avg = mean(avg))
   uw_pooled <- left_join(uw_pooled, uw_pooled_avg, by = c("var", "mod"))
-  
+
   if (!weighted) {
     spl_avg <- uw
     pooled <- uw_pooled
@@ -239,7 +239,7 @@ pl_or <- function(indiv,
                                                          lwr = bs(lor, weights = w)[1],
                                                          upr = bs(lor, weights = w)[2])
     w <- w %>% mutate(weights = "tuned")
-    
+
     w_pooled <- indiv %>% filter(mod != "sils") %>% group_by(var, mod, spl) %>% summarise(bs = bs(lor, weights = w, ret_all = T)) %>%
       group_by(var, mod) %>% summarise(lwr = quantile(bs, 0.025, na.rm = T),
                                        upr = quantile(bs, 0.975, na.rm = T))
@@ -251,7 +251,7 @@ pl_or <- function(indiv,
     w_pooled <- w_pooled %>% mutate(weights = "tuned")
     w_pooled_avg <- w %>% group_by(var, mod) %>% summarise(avg = mean(avg))
     w_pooled <- left_join(w_pooled, w_pooled_avg, by = c("var", "mod"))
-    
+
     spl_avg <- bind_rows(uw, w)
     pooled <- bind_rows(uw_pooled, w_pooled)
   }
@@ -262,7 +262,7 @@ pl_or <- function(indiv,
     pooled$upr <- exp(pooled$upr)
     pooled$avg <- exp(pooled$avg)
   }
-  
+
   # order levels of vars
   if (order_vars) {
     vord <- indiv %>% group_by(var) %>% summarise(avg = mean(lor)) %>% arrange(avg)
@@ -271,11 +271,11 @@ pl_or <- function(indiv,
     spl_avg$var <- factor(spl_avg$var, levels = vord)
     pooled$var <- factor(pooled$var, levels = vord)
   }
-  
-  # order models 
+
+  # order models
   spl_avg$mod <- factor(spl_avg$mod, levels = levels(indiv$mod))
   pooled$mod <- factor(pooled$mod, levels = levels(indiv$mod))
-  
+
   if (!pooled_only) {
     ggplot(spl_avg, aes(x = var, y = avg, group = interaction(var, mod, spl))) +
       (if(weighted) facet_grid(rows = vars(weights), labeller = labeller(.rows = label_both))) +
@@ -287,8 +287,8 @@ pl_or <- function(indiv,
                         group = interaction(var, mod, spl), color = mod),
                     position = position_dodge(width = 0.75), width = width,
                     size = 0.5) +
-      
-      (if (avg_across_spl) geom_point(data = pooled, 
+
+      (if (avg_across_spl) geom_point(data = pooled,
                                       aes(x = var, y = avg,
                                           group = interaction(var, mod), color = mod),
                                       # position = position_dodge(width = 0.7),
@@ -320,17 +320,17 @@ pl_or <- function(indiv,
                          breaks = levels(indiv$mod)) +
       scale_x_discrete(labels = var_labs) +
       coord_flip() +
-      theme_bw() + 
+      theme_bw() +
       (if (lbetvar) geom_vline(xintercept = seq(1.5, length(unique(indiv$var)), by = 1), alpha = 0.05)) +
       (if (!y.text) theme(axis.ticks.y = element_blank(),
                           axis.text.y = element_blank())) +
       (if (!is.null(t.size)) theme(text = element_text(size = t.size))) +
       theme(panel.grid.major.y = element_blank(),
-            strip.background = element_rect(fill = "white")) 
+            strip.background = element_rect(fill = "white"))
   } else {
     ggplot(spl_avg, aes(x = var, y = avg, group = interaction(var, mod))) +
       (if(weighted) facet_grid(rows = vars(weights), labeller = labeller(.rows = label_both))) +
-      (if (avg_across_spl) geom_point(data = pooled, 
+      (if (avg_across_spl) geom_point(data = pooled,
                                       aes(x = var, y = avg,
                                           group = interaction(var, mod), color = mod),
                                       # position = position_dodge(width = 0.7),
@@ -354,13 +354,13 @@ pl_or <- function(indiv,
                          breaks = levels(indiv$mod)) +
       scale_x_discrete(labels = var_labs) +
       coord_flip() +
-      theme_bw() + 
+      theme_bw() +
       (if (lbetvar) geom_vline(xintercept = seq(1.5, length(unique(indiv$var)), by = 1), alpha = 0.05)) +
       (if (!y.text) theme(axis.ticks.y = element_blank(),
                           axis.text.y = element_blank())) +
       (if (!is.null(t.size)) theme(text = element_text(size = t.size))) +
       theme(panel.grid.major.y = element_blank(),
-            strip.background = element_rect(fill = "white")) 
+            strip.background = element_rect(fill = "white"))
   }
 }
 
@@ -396,26 +396,26 @@ pl_cal <- function(avg, avg_ref = NULL, spl = NULL, spl_ref = NULL, indiv = NULL
                    strokep = FALSE,
                    nrow = 2, ncol = 4,
                    t.size = NULL) {
-  
+
   ggplot(avg, aes(x = midpoint, y = prop, color = method)) +
     (if (!strokep) {
-    (if (weighted) { facet_grid(weights ~ mod, 
+    (if (weighted) { facet_grid(weights ~ mod,
                               labeller = labeller(mod = as_labeller(facet_labs, label_parsed),
                                    .rows = label_both))
      } else {
        facet_grid(~ mod, labeller = labeller(mod = as_labeller(facet_labs, label_parsed)))
        })} else {
-         facet_wrap(~ mod, labeller = labeller(mod = as_labeller(facet_labs, label_parsed)), 
+         facet_wrap(~ mod, labeller = labeller(mod = as_labeller(facet_labs, label_parsed)),
                     ncol = ncol, nrow = nrow)
        })+
     geom_point(size = psize) +
     geom_line(size = lsize) +
     geom_errorbar(aes(ymin = lwr, ymax = upr), size = ebarsize, width = 0.06) +
-    (if(!is.null(avg_ref)) geom_point(data = avg_ref, aes(x = midpoint, y = prop), 
+    (if(!is.null(avg_ref)) geom_point(data = avg_ref, aes(x = midpoint, y = prop),
                                       color = col_ref, size = psize, inherit.aes = FALSE)) +
-    (if(!is.null(avg_ref)) geom_line(data = avg_ref, aes(x = midpoint, y = prop), 
+    (if(!is.null(avg_ref)) geom_line(data = avg_ref, aes(x = midpoint, y = prop),
                                      color = col_ref, size = lsize, inherit.aes = FALSE)) +
-    (if(!is.null(avg_ref)) geom_errorbar(data = avg_ref, aes(x = midpoint, ymin = lwr, ymax = upr), 
+    (if(!is.null(avg_ref)) geom_errorbar(data = avg_ref, aes(x = midpoint, ymin = lwr, ymax = upr),
                                          color = col_ref, size = ebarsize, inherit.aes = FALSE,
                                          width = 0.06)) +
     # geom_point(data = spl, aes(x = midpoint, y = prop,
@@ -432,23 +432,23 @@ pl_cal <- function(avg, avg_ref = NULL, spl = NULL, spl_ref = NULL, indiv = NULL
                                                           group = interaction(ens, spl),
                                                           width = 0.06),
                                         alpha = 0.2, size = 0.25, inherit.aes = FALSE)) +
-    (if(!is.null(spl)) geom_point(data = spl, aes(x = midpoint, y = prop, 
+    (if(!is.null(spl)) geom_point(data = spl, aes(x = midpoint, y = prop,
                                   color = method), size = 0.7, alpha = 0.3, inherit.aes = FALSE)) +
     (if(!is.null(spl)) geom_line(data = spl, aes(x = midpoint, y = prop,
                                                  color = method,
                                                  group = interaction(spl, method)),
                                  alpha = 0.3, size = 0.25, inherit.aes = FALSE)) +
-    (if(!is.null(spl)) geom_errorbar(data = spl, aes(x = midpoint, ymin = lwr, ymax = upr, 
+    (if(!is.null(spl)) geom_errorbar(data = spl, aes(x = midpoint, ymin = lwr, ymax = upr,
                                                      color = method,
                                                      group = interaction(spl, method),
                                                      width = 0.06),
                                      alpha = 0.3, size = 0.1, inherit.aes = FALSE)) +
-    (if(!is.null(spl_ref)) geom_point(data = spl_ref, aes(x = midpoint, y = prop, group = spl, 
+    (if(!is.null(spl_ref)) geom_point(data = spl_ref, aes(x = midpoint, y = prop, group = spl,
                                       color = col_ref), size = 0.7, alpha = 0.3, inherit.aes = FALSE)) +
     (if(!is.null(spl_ref)) geom_line(data = spl_ref, aes(x = midpoint, y = prop,
                                                          group = spl),
                                      alpha = 0.3, size = 0.25, inherit.aes = FALSE)) +
-    (if(!is.null(spl_ref)) geom_errorbar(data = spl_ref, aes(x = midpoint, ymin = lwr, ymax = upr, 
+    (if(!is.null(spl_ref)) geom_errorbar(data = spl_ref, aes(x = midpoint, ymin = lwr, ymax = upr,
                                                              group = spl, width = 0.06),
                                          alpha = 0.3, size = 0.1, inherit.aes = FALSE)) +
     geom_abline(slope = 1, intercept = 0, alpha = 0.2) +
@@ -474,7 +474,7 @@ pl_cal <- function(avg, avg_ref = NULL, spl = NULL, spl_ref = NULL, indiv = NULL
 
 # Create list of CDFs and true Y (all splits) -----------------------------
 
-load_lys_cdf_all <- function(all, m, K, 
+load_lys_cdf_all <- function(all, m, K,
                              l = c("nll", "rps"),
                              t = c("test", "val", "train")) {
   l <- match.arg(l)
@@ -495,6 +495,79 @@ load_y_true_all <- function(all, K, t = c("test", "val", "train")) {
   return(ret)
 }
 
+
+# Bootstrap CI for performance metrics ------------------------------------
+
+boot_ci <- function(cdf_all, y_true_all, met_ref,
+                    binary, mod, meth, K, loss,
+                    weighted, avg,
+                    fname, in_dir, out_dir) {
+
+  cdf_all <- eval(parse(text = cdf_all))
+  y_true_all <- eval(parse(text = y_true_all))
+  met_ref <- eval(parse(text = met_ref))
+
+  lys_cdf_all <- load_lys_cdf_all(cdf_all, m = mod, K = K, l = loss, t = "test")
+  y_true_all <- load_y_true_all(y_true_all, K = K, t = "test")
+
+  if (!(mod %in% c("si", "sils"))) {
+    if(weighted) {
+      w <- read.csv(paste0(in_dir, "w_", fname, ".csv"))
+      tmp <- meth
+      if(tmp == "avg") tmp <- "linear"
+      if(tmp == "avgll") tmp <- "log-linear"
+      if(tmp == "avgtrf") tmp <- "trafo"
+      w <- extract_w(w, meth = tmp)
+    }
+    if (!weighted & !avg) {
+      # ensemble with equal weights
+      ens <- lapply(lapply(lys_cdf_all, get_ensemble, type = meth), list)
+    } else if (weighted & !avg) {
+      # weighted ens
+      ens <- lapply(get_weighted_ens(lys_cdf_all = lys_cdf_all,
+                                     lys_weigths = w, type = meth), list)
+    }
+    if (!avg) {
+      # ci for ensembles
+      ci <- get_bs(lys_cdf_all = ens, y_true_all = y_true_all, R = 1000,
+                   binary = binary, ncpus = 16, met_ref = met_ref)
+    } else {
+      # ci for avg across split
+      if (!weighted) {
+        ci <- get_bs(lys_cdf_all = lys_cdf_all, y_true_all = y_true_all, R = 1000,
+                     binary = binary, ncpus = 16, met_ref = met_ref)
+      } else {
+        ci <- get_bs(lys_cdf_all = lys_cdf_all, y_true_all = y_true_all, R = 1000,
+                     binary = binary, ncpus = 16,
+                     weights = w, met_ref = met_ref)
+      }
+    }
+  } else { # si, sils
+    ci <- get_bs(lys_cdf_all = lys_cdf_all, y_true_all = y_true_all, R = 1000,
+                 binary = binary, ncpus = 16, met_ref = met_ref)
+  }
+  ci$mod <- mod
+  ci$method <- meth
+
+  if (mod %in% c("si", "sils")) {
+    f <- paste0("boot_", mod, loss, ".csv")
+  } else if (!weighted) {
+    abb <- if(meth == "avg") "avg" else if(meth == "linear") "l"
+    else if(meth == "log-linear") "ll" else if(meth == "trafo") "trf"
+    f <- paste0("boot_", mod, loss, "_", abb, ".csv")
+  } else if (weighted & !avg) {
+    abb <- if(meth == "avg") "avg" else if(meth == "linear") "l"
+    else if(meth == "log-linear") "ll" else if(meth == "trafo") "trf"
+    f <- paste0("wboot_", mod, loss, "_", abb, ".csv")
+  } else {
+    abb <- if (meth == "avg") "avgl" else meth
+    f <- paste0("wboot_", mod, loss, "_", abb, ".csv")
+  }
+  write.csv(paste0(out_dir, f), row.names = FALSE)
+  # print(f)
+  # return(ci)
+}
+
 # Bootstrap for log OR ----------------------------------------------------
 
 bs <- function(vals, B = 1000, weights = rep(1, length(vals)), ret_all = FALSE) {
@@ -509,7 +582,7 @@ bs <- function(vals, B = 1000, weights = rep(1, length(vals)), ret_all = FALSE) 
   } else {
     return(avgs)
   }
-} 
+}
 
 # Bind rows matching a specific pattern -----------------------------------
 
@@ -525,13 +598,77 @@ bindr <- function(pat1 = "met", pat2 = NULL) {
 # Specify order of n first levels -----------------------------------------
 
 relev <- function(d, var, levs) {
-  d[, var] <- factor(d[, var], 
-                     levels = c(levs, 
+  d[, var] <- factor(d[, var],
+                     levels = c(levs,
                                 unique(d[, var])[!(unique(d[, var]) %in% levs)]))
   return(d)
 }
 
 # Calibration -------------------------------------------------------------
+
+# top
+
+calc_calibration <- function(cdf_all, y_true_all, mod, meth,
+                             K, loss, weighted, avg,
+                             cuts_fun, fname, in_dir) {
+
+  cdf_all <- eval(parse(text = cdf_all))
+  y_true_all <- eval(parse(text = y_true_all))
+  cuts_fun <- eval(parse(text = cuts_fun))
+
+  lys_cdf_all <- load_lys_cdf_all(cdf_all, m = mod, K = K, l = loss, t = "test")
+  y_true_all <- load_y_true_all(y_true_all, K = K, t = "test")
+
+  if (!(mod %in% c("si", "sils"))) {
+    if(weighted) {
+      w <- read.csv(paste0(in_dir, "w_", fname, ".csv"))
+      tmp <- meth
+      if(tmp == "avg") tmp <- "linear"
+      if(tmp == "avgll") tmp <- "log-linear"
+      if(tmp == "avgtrf") tmp <- "trafo"
+      w <- extract_w(w, meth = tmp)
+    }
+    if (!weighted & !avg) {
+      # ensemble with equal weights
+      ens <- lapply(lys_cdf_all, get_ensemble, type = meth)
+    } else if (weighted & !avg) {
+      # weighted ens
+      ens <- get_weighted_ens(lys_cdf_all = lys_cdf_all,
+                              lys_weigths = w, type = meth)
+    }
+    if (!avg) {
+      # cal per split
+      cal <- comb_ens_cal(lys_cdf_ens = ens, y_true_all = y_true_all,
+                          cumulative = TRUE, emp = TRUE,
+                          custom_cuts_fun = cuts_fun)
+    } else {
+      # avg cal per split
+      if (!weighted) {
+        cal <- comb_avg_cal(lys_cdf_all = lys_cdf_all, y_true_all = y_true_all,
+                            cumulative = TRUE, emp = TRUE,
+                            custom_cuts_fun = cuts_fun)
+      } else {
+        cal <- comb_avg_cal(lys_cdf_all = lys_cdf_all, y_true_all = y_true_all,
+                            weights = w,
+                            cumulative = TRUE, emp = TRUE,
+                            custom_cuts_fun = cuts_fun)
+      }
+    }
+  } else { # si, sils
+    # no nested list
+    lys_cdf_all <- lapply(lys_cdf_all, function(x) do.call(rbind, x))
+    cal <- comb_ens_cal(lys_cdf_ens = lys_cdf_all, y_true_all = y_true_all,
+                        cumulative = TRUE, emp = TRUE,
+                        custom_cuts_fun = cuts_fun)
+  }
+  cal$method <- meth
+  cal$mod <- mod
+  if (!weighted) cal$weights <- "equal" else cal$weights <- "tuned"
+
+  # avg cal across all splits
+  avg_cal <- avg_across_spl(list(cal))
+  return(avg_cal)
+}
 
 # calibration for one cdf (1 ensemble or 1 ensemble member)
 cal_ens <- function(cdf, y_true, cuts = 11, cumulative = TRUE, pool = TRUE, emp = FALSE,
@@ -566,7 +703,7 @@ cal_ens <- function(cdf, y_true, cuts = 11, cumulative = TRUE, pool = TRUE, emp 
     as.matrix(x[, c("Percent", "Lower", "Upper", "Count", "midpoint")])
   })
   avg <- apply(simplify2array(tmp), 1:2, mean)
-  
+
   if (pool) {
     ret <- data.frame(bin = lys_cal[[1]]$bin,
                       prop = avg[, "Percent"]/100,
@@ -594,7 +731,7 @@ cal_splavg <- function(lys_cdf, y_true, cumulative = TRUE,  cuts = 11,
     as.matrix(x[, c("prop", "lwr", "upr", "cases", "midpoint")])
   })
   avg <- apply(simplify2array(tmp), 1:2, weighted.mean, w = weights)
-  
+
   ret <- data.frame(bin = lys_cal[[1]]$bin,
                     prop = avg[, "prop"],
                     lwr = avg[, "lwr"],
@@ -638,7 +775,7 @@ comb_avg_cal <- function(lys_cdf_all, y_true_all, cumulative = TRUE, cuts = 11,
   return(ret)
 }
 
-# average calibration across all splits 
+# average calibration across all splits
 # separate for mod, weights, method
 avg_across_spl <- function(lys_splitted) {
   lys_avg <- lapply(lys_splitted, function(x) {
@@ -683,12 +820,12 @@ get_weighted_ens <- function(lys_cdf_all, lys_weigths, type = c("linear", "log-l
   mapply(function(lys, w) {
     get_ensemble(lys_cdf = lys, weights = w, type = t)
   }, lys = lys_cdf_all, w = lys_weigths, SIMPLIFY = FALSE)
-} 
+}
 
 extract_w <- function(w_all, meth = c("linear", "log-linear", "trafo"), ens = 5) {
   meth <- match.arg(meth)
-  w_all %>% 
-    filter(method  == meth) %>% 
+  w_all %>%
+    filter(method  == meth) %>%
     select(1:all_of(ens)) %>%
     t() %>% as.data.frame() %>% as.list()
 }
