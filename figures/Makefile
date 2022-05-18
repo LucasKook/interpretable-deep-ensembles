@@ -9,4 +9,4 @@ plots:
 clean:
 	rm *.pdf
 
-all: plots clean
+all: plots
