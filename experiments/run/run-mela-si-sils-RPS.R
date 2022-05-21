@@ -23,9 +23,9 @@ out_dir <- "experiments/results/DE/melanoma/"
 
 fml_cond <- target ~ age_s
 fml_uncond <- target ~ 1
-decay <- 1e-5
-lr <- 0.01
-epochs <- 500
+decay <- 1e-4
+lr <- 0.1
+epochs <- 1000
 spl <- 6
 
 # Load data ---------------------------------------------------------------
