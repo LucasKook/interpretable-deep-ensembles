@@ -75,7 +75,7 @@ args_rps <- args_nll %>% mutate(met_ref = "met_silsrps",
                                 loss = "rps",
                                 fname = c(rep(c(fname_silscsrps, fname_cilsrps,
                                                 fname_sicsrps, fname_cirps), each = 10),
-                                          rep(c(fname_silsrps, fname_si), each = 1)))
+                                          rep(c(fname_silsrps, fname_sirps), each = 1)))
 
 
 do.call(Map, c(f = boot_ci, args_nll))
