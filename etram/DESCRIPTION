@@ -6,7 +6,8 @@ Authors@R: c(
     person("Lucas", "Kook", role = c("cre", "aut"), 
            email = "lucasheinrich.kook@gmail.com"),
     person("Andrea", "Goetschi", role = "aut"))
-Description: Transformation ensembles
+Description: Training and evaluation of transformation ensembles
+consiting of ordinal neural network transformation models (ONTRAMs).
 Depends: R (>= 3.6.0), ontram, dplyr, tram
 License: GPL-3
 Encoding: UTF-8
