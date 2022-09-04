@@ -9,12 +9,13 @@ list_cdfs <- function(in_dir, fname, splits, ensembles = NULL, type = c("test", 
     if (!is.null(ensembles)) {
       for (ens in seq_len(ensembles)) {
         assign(paste0("cdf", ens),
-               read.csv(paste0(in_dir, fname, "_cdf", type, "_spl", spl, "_ens", ens, ".csv"))[, -c(1L, 2L), drop = FALSE])
+               read.csv(file.path(in_dir, paste0(fname, "_cdf", type, "_spl",
+                                                 spl, "_ens", ens, ".csv")))[, -c(1L, 2L), drop = FALSE])
         eval(parse(text = paste0("lys", spl, "[[", ens, "]] <- cdf", ens)))
       }
     } else { # si, sils
       assign(paste0("cdf", spl),
-             read.csv(paste0(in_dir, fname, "_cdf", type, "_spl", spl, ".csv"))[, -c(1L, 2L), drop = FALSE])
+             read.csv(file.path(in_dir, paste0(fname, "_cdf", type, "_spl", spl, ".csv")))[, -c(1L, 2L), drop = FALSE])
       eval(parse(text = paste0("lys", spl, "[[1]] <- cdf", spl)))
     }
     eval(parse(text = paste0("lys", "[[", spl, "]] <- lys", spl)))
@@ -32,12 +33,14 @@ list_trafos <- function(in_dir, fname, splits, ensembles = NULL, type = c("test"
     if (!is.null(ensembles)) {
       for (ens in seq_len(ensembles)) {
         assign(paste0("trafo", ens),
-               read.csv(paste0(in_dir, fname, "_trafo", type, "_spl", spl, "_ens", ens, ".csv"))[, -c(1L), drop = FALSE])
+               read.csv(file.path(in_dir, paste0(fname, "_trafo", type, "_spl",
+                                                 spl, "_ens", ens, ".csv")))[, -c(1L), drop = FALSE])
         eval(parse(text = paste0("lys", spl, "[[", ens, "]] <- trafo", ens)))
       }
     } else { # si, sils
       assign(paste0("trafo", spl),
-             read.csv(paste0(in_dir, fname, "_trafo", type, "_spl", spl, ".csv"))[, -c(1L), drop = FALSE])
+             read.csv(file.path(in_dir, file.path(fname, "_trafo", type, "_spl",
+                                                  spl, ".csv")))[, -c(1L), drop = FALSE])
       eval(parse(text = paste0("lys", spl, "[[1]] <- trafo", spl)))
     }
     eval(parse(text = paste0("lys", "[[", spl, "]] <- lys", spl)))
@@ -55,12 +58,14 @@ list_terms <- function(in_dir, fname, splits, ensembles = NULL, type = c("test",
     if (!is.null(ensembles)) {
       for (ens in seq_len(ensembles)) {
         assign(paste0("raw", ens),
-               read.csv(paste0(in_dir, fname, "_raw", type, "_spl", spl, "_ens", ens, ".csv"))[, -c(1L), drop = FALSE])
+               read.csv(file.path(in_dir, paste0(fname, "_raw", type, "_spl",
+                                                 spl, "_ens", ens, ".csv")))[, -c(1L), drop = FALSE])
         eval(parse(text = paste0("lys", spl, "[[", ens, "]] <- raw", ens)))
       }
     } else { # si, sils
       assign(paste0("raw", spl),
-             read.csv(paste0(in_dir, fname, "_raw", type, "_spl", spl, ".csv"))[, -c(1L), drop = FALSE])
+             read.csv(file.path(in_dir, paste0(fname, "_raw", type, "_spl",
+                                               spl, ".csv")))[, -c(1L), drop = FALSE])
       eval(parse(text = paste0("lys", spl, "[[1]] <- raw", spl)))
     }
     eval(parse(text = paste0("lys", "[[", spl, "]] <- lys", spl)))
@@ -77,12 +82,12 @@ list_lors <- function(in_dir, fname, splits, ensembles = NULL) {
     if (!is.null(ensembles)) {
       for (ens in seq_len(ensembles)) {
         assign(paste0("lor", ens),
-               read.csv(paste0(in_dir, fname, "_lor_spl", spl, "_ens", ens, ".csv")))
+               read.csv(file.path(in_dir, paste0(fname, "_lor_spl", spl, "_ens", ens, ".csv"))))
         eval(parse(text = paste0("lys", spl, "[[", ens, "]] <- lor", ens)))
       }
     } else { # si, sils
       assign(paste0("lor", spl),
-             read.csv(paste0(in_dir, fname, "_lor_spl", spl, ".csv")))
+             read.csv(file.path(in_dir, paste0(fname, "_lor_spl", spl, ".csv"))))
       eval(parse(text = paste0("lys", spl, "[[1]] <- lor", spl)))
     }
     eval(parse(text = paste0("lys", "[[", spl, "]] <- lys", spl)))
@@ -97,7 +102,9 @@ load_hists <- function(in_dir, fname, splits, ensembles) {
   for (spl in seq_len(splits)) {
     eval(parse(text = paste0("lys", spl, "<- list()")))
     for (ens in seq_len(ensembles)) {
-      assign(paste0("hist", ens), read.csv(file = paste0(in_dir, fname, "_hist_spl", spl, "_ens", ens, ".csv")))
+      assign(paste0("hist", ens),
+             read.csv(file = file.path(in_dir, paste0(fname, "_hist_spl", spl,
+                                                      "_ens", ens, ".csv"))))
       eval(parse(text = paste0("hist", ens, "$Split <- ", spl)))
       eval(parse(text = paste0("hist", ens, "$Ens <- ", ens)))
       eval(parse(text = paste0("lys", spl, "[[", ens, "]]", "<- hist", ens)))

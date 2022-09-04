@@ -63,7 +63,7 @@ load_data <- function(which = c("mnist", "stroke", "utkface", "melanoma"), path 
     im <- array(dim = c(nrow(tab_dat), image_size, image_size, 3L))
     for (i in seq_len(nrow(tab_dat))) {
       print(i)
-      name <- paste0(im_path, tab_dat$image_name[i], '.jpg')
+      name <- file.path(im_path, paste0(tab_dat$image_name[i], '.jpg'))
       if (!file.exists(name)){
         print(paste0('File ', name, ' does not exist'))
       }

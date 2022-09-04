@@ -13,7 +13,7 @@ fit_ref_lossrps <- function(mod = c("sils", "si"), fml, tab_dat, ridx,
                             epochs = 800,
                             out_dir, fname) {
 
-  m_dir <- paste0(out_dir, "ckpts/")
+  m_dir <- file.path(out_dir, "ckpts/")
   mod <- match.arg(mod)
   l <- k_ontram_rps(K)
   mf <- model.frame(fml, data = tab_dat)
@@ -83,8 +83,8 @@ fit_ref_lossrps <- function(mod = c("sils", "si"), fml, tab_dat, ridx,
 
     ### Fit model ###
 
-    mpath <- paste0(m_dir, fname, "_m_spl", spl, ".hdf5")
-    hpath <- paste0(out_dir, fname, "_hist_spl", spl, ".csv")
+    mpath <- file.path(m_dir, paste0(fname, "_m_spl", spl, ".hdf5"))
+    hpath <- file.path(out_dir, paste0(fname, "_hist_spl", spl, ".csv"))
 
     h <- h <- fit(m,
                   x = inp_train, y = y_train,
@@ -96,16 +96,16 @@ fit_ref_lossrps <- function(mod = c("sils", "si"), fml, tab_dat, ridx,
 
     ### Evaluate model ###
 
-    ctrainpath <- paste0(out_dir, fname, "_cdftrain_spl", spl, ".csv")
-    cvalpath <- paste0(out_dir, fname, "_cdfval_spl", spl, ".csv")
-    ctestpath <- paste0(out_dir, fname, "_cdftest_spl", spl, ".csv")
-    ttrainpath <- paste0(out_dir, fname, "_trafotrain_spl", spl, ".csv")
-    tvalpath <- paste0(out_dir, fname, "_trafoval_spl", spl, ".csv")
-    ttestpath <- paste0(out_dir, fname, "_trafotest_spl", spl, ".csv")
-    rtrainpath <- paste0(out_dir, fname, "_rawtrain_spl", spl, ".csv")
-    rvalpath <- paste0(out_dir, fname, "_rawval_spl", spl, ".csv")
-    rtestpath <- paste0(out_dir, fname, "_rawtest_spl", spl, ".csv")
-    lorpath <- paste0(out_dir, fname, "_lor_spl", spl, ".csv")
+    ctrainpath <- file.path(out_dir, paste0(fname, "_cdftrain_spl", spl, ".csv"))
+    cvalpath <- file.path(out_dir, paste0(fname, "_cdfval_spl", spl, ".csv"))
+    ctestpath <- file.path(out_dir, paste0(fname, "_cdftest_spl", spl, ".csv"))
+    ttrainpath <- file.path(out_dir, paste0(fname, "_trafotrain_spl", spl, ".csv"))
+    tvalpath <- file.path(out_dir, paste0(fname, "_trafoval_spl", spl, ".csv"))
+    ttestpath <- file.path(out_dir, paste0(fname, "_trafotest_spl", spl, ".csv"))
+    rtrainpath <- file.path(out_dir, paste0(fname, "_rawtrain_spl", spl, ".csv"))
+    rvalpath <- file.path(out_dir, paste0(fname, "_rawval_spl", spl, ".csv"))
+    rtestpath <- file.path(out_dir, paste0(fname, "_rawtest_spl", spl, ".csv"))
+    lorpath <- file.path(out_dir, paste0(fname, "_lor_spl", spl, ".csv"))
 
     #### CDFs
 

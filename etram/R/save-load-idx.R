@@ -36,11 +36,11 @@ save_ridx <- function(nsplts, prptest, prpval, tab_dat, fml, out_dir, fname) {
     }
     ret <- rbind(ret, tmp)
   }
-  write.csv(ret, file = paste0(out_dir, fname, "_ridx.csv"))
+  write.csv(ret, file = file.path(out_dir, paste0(fname, "_ridx.csv")))
 }
 
 #' Load row indices of random splits
 #' @export
 get_ridx <- function(in_dir, fname) {
-  read.csv(file = paste0(in_dir, fname, "_ridx.csv"))[, -1L]
+  read.csv(file = file.path(in_dir, paste0(fname, "_ridx.csv")))[, -1L]
 }
