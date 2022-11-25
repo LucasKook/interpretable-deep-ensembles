@@ -49,7 +49,8 @@ rps <- pl_cal(avg = avgrps, avg_ref = avgref)
 ## FIGURE 8
 
 avg <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) /
-       (rps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+       (rps + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 13))
 avg + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_calpl.pdf"), height = 10.5, width = 12.5)
 

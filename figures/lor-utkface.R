@@ -53,7 +53,8 @@ orrps <- pl_or(indiv = indivrps, width = 1, ylim = c(-0.53, 0.5),
 
 ## FIGURE E10
 lor <- (ornll + labs(tag = "A", subtitle = "Loss: NLL")) +
-       (orrps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+       (orrps + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 14))
 lor + plot_layout(guides = "collect")
-ggsave(paste0(out_dir, "utkface_lor.pdf"), height = 13, width = 10)
+ggsave(paste0(out_dir, "utkface_lor.pdf"), height = 14, width = 10)
 

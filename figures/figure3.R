@@ -8,7 +8,10 @@ set.seed(1)
 
 library(tidyverse)
 library(patchwork)
-theme_set(theme_bw() + theme(legend.position = "top"))
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top", text = element_text(size = 12.5))
+)
 
 # FUNs --------------------------------------------------------------------
 

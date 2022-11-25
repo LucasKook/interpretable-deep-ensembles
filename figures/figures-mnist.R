@@ -142,14 +142,16 @@ pl_ordrps_indiv <- pl_met(spl_met = met_cirps_all,
 ## FIGURE E1 A, B
 
 c_ord <- (pl_ordnll + labs(tag = "A", subtitle = "Loss: NLL")) /
-         (pl_ordrps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+         (pl_ordrps + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 14))
 c_ord + plot_layout(guides = "collect")
 # ggsave(paste0(out_dir, "mnist_ci_wvsnw.pdf"), height = 9, width = 8)
 
 ## FIGURE E2
 
 c_ord_indiv <- (pl_ordnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
-               (pl_ordrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+               (pl_ordrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 14))
 c_ord_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mnist_ci_wvsnw_indiv.pdf"), height = 7, width = 8)
 
@@ -176,7 +178,8 @@ pl_calrps_indiv <- pl_met(spl_met = met_cirps_all,
 ## FIGURE E3
 
 c_cal_indiv <- (pl_calnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
-               (pl_calrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+               (pl_calrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 13))
 c_cal_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mnist_cal_indiv.pdf"), height = 7, width = 7.5)
 
@@ -204,7 +207,8 @@ rps <- pl_cal(avg = avgrps)
 ## FIGURE E1 C, D
 
 avg <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) +
-       (rps + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+       (rps + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 14))
 avg + plot_layout(guides = "collect")
 # ggsave(paste0(out_dir, "mnist_cumcalpl.pdf"), height = 6.5, width = 8.7)
 
@@ -214,9 +218,11 @@ avg + plot_layout(guides = "collect")
 ## FIGURE E1
 
 prf_cal <- (pl_ordnll + labs(tag = "A", subtitle = "Loss: NLL")) +
-           (nll + theme(legend.position = "none")  + labs(tag = "C", subtitle = "Loss: NLL")) +
+           (nll + theme(legend.position = "none", text = element_text(size = 14)) +
+              labs(tag = "C", subtitle = "Loss: NLL")) +
            (pl_ordrps + labs(tag = "B", subtitle = "Loss: RPS")) +
-           (rps + theme(legend.position = "none") + labs(tag = "D", subtitle = "Loss: RPS"))
+           (rps + theme(legend.position = "none", text = element_text(size = 14)) +
+              labs(tag = "D", subtitle = "Loss: RPS"))
 prf_cal + plot_layout(guides = "collect", widths = c(4, 1))
 
 ggsave(paste0(out_dir, "mnist_prf_cumcalpl.pdf"), height = 8, width = 12)

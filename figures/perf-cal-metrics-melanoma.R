@@ -256,14 +256,16 @@ pl_rps_indiv <- pl_met(spl_met = met_ranked,
 ## FIGURE 5
 
 c_prf <- (pl_nll + labs(tag = "A", subtitle = "Loss: NLL")) /
-         (pl_rps + labs(tag = "B", subtitle = "Loss: Brier score")) & theme(legend.position = "right")
+         (pl_rps + labs(tag = "B", subtitle = "Loss: Brier score")) &
+  theme(legend.position = "right", text = element_text(size = 13))
 c_prf + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mela_wvsnw.pdf"), height = 13, width = 13.5)
 
 ## FIGURE E5
 
 c_prf_indiv <- (pl_nll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
-               (pl_rps_indiv + labs(tag = "B", subtitle = "Loss: Brier score")) & theme(legend.position = "right")
+               (pl_rps_indiv + labs(tag = "B", subtitle = "Loss: Brier score")) &
+  theme(legend.position = "right", text = element_text(size = 13))
 c_prf_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mela_wvsnw_indiv.pdf"), height = 13, width = 13.5)
 
@@ -285,7 +287,8 @@ pl_rps_rel <-  pl_met(spl_met = met_ranked,
 ## FIGURE E4
 
 c_prf_rel <- (pl_nll_rel + labs(tag = "A", subtitle = "Loss: NLL")) /
-             (pl_rps_rel + labs(tag = "B", subtitle = "Loss: Brier score")) & theme(legend.position = "right")
+             (pl_rps_rel + labs(tag = "B", subtitle = "Loss: Brier score")) &
+  theme(legend.position = "right", text = element_text(size = 13))
 c_prf_rel + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mela_wvsnw_rel.pdf"), height = 12.5, width = 13.5)
 
@@ -309,7 +312,8 @@ pl_calrps_indiv <- pl_met(spl_met = met_ranked,
 
 ## FIGURE E6
 c_cal_indiv <- (pl_calnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
-               (pl_calrps_indiv + labs(tag = "B", subtitle = "Loss: Brier score")) & theme(legend.position = "right")
+               (pl_calrps_indiv + labs(tag = "B", subtitle = "Loss: Brier score")) &
+  theme(legend.position = "right", text = element_text(size = 13))
 c_cal_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mela_cal_indiv.pdf"), height = 12, width = 7.5)
 

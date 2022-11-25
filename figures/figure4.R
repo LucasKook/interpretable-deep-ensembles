@@ -10,7 +10,10 @@ library(tram)
 library(etram)
 library(tidyverse)
 library(patchwork)
-theme_set(theme_bw())
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top", text = element_text(size = 13))
+)
 
 # Params ------------------------------------------------------------------
 
@@ -100,7 +103,7 @@ p3 <- ggplot(cdat, aes(x = x, y = val, group = mem)) +
   geom_line(aes(y = avg, linetype = "TRF-Ens")) +
   geom_point(aes(x = x, y = y), data = pdat$td, inherit.aes = FALSE, alpha = 0.3) +
   labs(y = "y", color = "", linetype = "Conditional median", fill = "") +
-  theme(legend.position = c(0.25, 0.8),
+  theme(legend.position = c(0.3, 0.8),
         legend.background = element_rect(fill = "transparent")) +
   scale_fill_manual(values = "gray") +
   scale_linetype_manual(values = c(2, 1)) +

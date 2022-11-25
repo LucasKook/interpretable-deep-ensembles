@@ -336,14 +336,16 @@ pl_ordrps_indiv <- pl_met(spl_met = met_ranked[is.finite(met_ranked$val), ],
 ## FIGURE 7
 
 c_ord <- (pl_ordnll_noref + labs(tag = "A", subtitle = "Loss: NLL")) /
-         (pl_ordrps_noref + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+         (pl_ordrps_noref + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 14))
 c_ord + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_wvsnw.pdf"), height = 13.5, width = 11.5)
 
 ## FIGURE E8
 
 c_ord_indiv <- (pl_ordnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
-               (pl_ordrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+               (pl_ordrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 14))
 c_ord_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_wvsnw_indiv.pdf"), height = 13.5, width = 11.5)
 
@@ -365,7 +367,8 @@ pl_ordrps_rel <-  pl_met(spl_met = met_ranked[is.finite(met_ranked$val), ],
 ## FIGURE E7
 
 c_ord_rel <- (pl_ordnll_rel + labs(tag = "A", subtitle = "Loss: NLL")) /
-             (pl_ordrps_rel + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+             (pl_ordrps_rel + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 14))
 c_ord_rel + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_wvsnw_rel.pdf"), height = 13, width = 11.5)
 
@@ -389,6 +392,7 @@ pl_calrps_indiv <- pl_met(spl_met = met_ranked,
 ## FIGURE E9
 
 c_cal_indiv <- (pl_calnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
-               (pl_calrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) & theme(legend.position = "right")
+               (pl_calrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) &
+  theme(legend.position = "right", text = element_text(size = 14))
 c_cal_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "utkface_cal_indiv.pdf"), height = 12.1, width = 7.5)
