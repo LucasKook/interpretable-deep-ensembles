@@ -60,7 +60,7 @@ rps <- pl_cal(avg = avgrps, avg_ref = avgref)
 
 avg <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) /
   (rps + labs(tag = "B", subtitle = "Loss: RPS")) &
-  theme(legend.position = "right", text = element_text(size = 14))
+  theme(legend.position = "right", text = element_text(size = 13))
 avg + plot_layout(guides = "collect")
 
 
@@ -89,7 +89,7 @@ pl <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) +
       (ornll + labs(tag = "C", subtitle = "Loss: NLL")) +
       (rps + labs(tag = "B", subtitle = "Loss: Brier score")) +
       (orrps + labs(tag = "D", subtitle = "Loss: Brier score")) &
-  theme(legend.position = "right", text = element_text(size = 14))
+  theme(legend.position = "right", text = element_text(size = 13))
 pl + plot_layout(guides = "collect", widths = c(4, 3))
 
 ggsave(paste0(out_dir, "mela_lor_calpl_emp.pdf"), height = 8, width = 11.6)
