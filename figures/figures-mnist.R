@@ -151,7 +151,8 @@ c_ord + plot_layout(guides = "collect")
 
 c_ord_indiv <- (pl_ordnll_indiv + labs(tag = "A", subtitle = "Loss: NLL")) /
                (pl_ordrps_indiv + labs(tag = "B", subtitle = "Loss: RPS")) &
-  theme(legend.position = "right", text = element_text(size = 14))
+  theme(legend.position = "right", text = element_text(size = 13),
+        axis.text.x = element_text(angle = 30))
 c_ord_indiv + plot_layout(guides = "collect")
 ggsave(paste0(out_dir, "mnist_ci_wvsnw_indiv.pdf"), height = 7, width = 8)
 

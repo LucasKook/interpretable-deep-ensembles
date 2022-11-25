@@ -56,7 +56,7 @@ avgref <- avg_nll %>% filter(mod %in% c("sils")) %>%
 nll <- pl_cal(avg = avgnll, avg_ref = avgref)
 rps <- pl_cal(avg = avgrps, avg_ref = avgref)
 
-## FIGURE 7 A, B
+## FIGURE 6 A, B
 
 avg <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) /
   (rps + labs(tag = "B", subtitle = "Loss: RPS")) &
@@ -89,7 +89,8 @@ pl <- (nll + labs(tag = "A", subtitle = "Loss: NLL")) +
       (ornll + labs(tag = "C", subtitle = "Loss: NLL")) +
       (rps + labs(tag = "B", subtitle = "Loss: Brier score")) +
       (orrps + labs(tag = "D", subtitle = "Loss: Brier score")) &
-  theme(legend.position = "right", text = element_text(size = 13))
+  theme(legend.position = "right", text = element_text(size = 13),
+        axis.text.x = element_text(angle = 30, hjust = 1, vjust = 1))
 pl + plot_layout(guides = "collect", widths = c(4, 3))
 
 ggsave(paste0(out_dir, "mela_lor_calpl_emp.pdf"), height = 8, width = 11.6)
