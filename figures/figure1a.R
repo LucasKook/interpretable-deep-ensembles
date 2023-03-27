@@ -24,29 +24,29 @@ plot(h(y), pZ(h(y)), type = "l")
 opar <- par(no.readonly = TRUE)
 
 # Plot
-pdf("figure1a.pdf", width = 6, height = 5)
-par(mar = c(0.1, 0.1, 0.1, 0.1) + 0.1)
+pdf("figure1a.pdf", width = 6 * .75, height = 5 * .75)
+par(mar = c(0.1, 0.1, 0.1, 0.1) + 0.8)
 layout(matrix(c(1,2,2,2,
                 3,4,4,4,
                 3,4,4,4,
                 3,4,4,4), nrow = 4, ncol = 4, byrow = TRUE))
 
 cols <- colorspace::diverge_hcl(res)
-tcx <- 1
+tcx <- 0.72
 
 plot.new()
 plot(y, pZ(h(y)), type = "l", axes = FALSE, xlim = range(y),
      ylim = c(0, 1))
-mtext(expression(F[Y](y~'|'~x)), 2, line = 3, cex = tcx, adj = 1)
-mtext(expression(y), 1, line = 3, cex = tcx)
+mtext(expression(F[Y~'|'~X==x](y)), 2, line = 2.5, cex = tcx, adj = 1)
+mtext(expression(y), 1, line = 3.1, cex = tcx)
 axis(1)
 axis(2, las = 1)
 arrows(y, 0, y, pZ(h(y)), length = 0, col = cols)
 plot(pZ(h(y)), h(y), type = "l", axes = FALSE, xlim = c(1, 0))
 axis(4, las = 1)
 axis(3)
-mtext(expression(F[Z](h(y~'|'~x))), 3, line = 2, cex = tcx, adj = 0)
-mtext(expression(h(y~'|'~x)), 4, line = 3, cex = tcx, las = 1)
+mtext(expression(F[Z](h(y~'|'~x))), 3, line = 2.1, cex = tcx, adj = 0)
+mtext(expression(h(y~'|'~x)), 4, line = 2.1, cex = tcx, las = 1)
 arrows(0, h(y), pZ(h(y)), h(y), length = 0, col = cols)
 plot(y, h(y), type = "p", axes = FALSE, xlim = range(y), col = cols, pch = 20, cex = 0.1)
 par(opar)

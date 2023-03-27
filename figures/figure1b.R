@@ -3,7 +3,7 @@
 # LK Apr 2022
 
 # Params, FUNs
-oy <- seq(0.05, 0.99, length.out = 7)
+oy <- seq(0.1, 0.95, length.out = 7)
 ncl <- length(oy)
 y <- seq(0, 1, length.out = res <- 1e3)
 alp <- pi
@@ -26,21 +26,21 @@ opar <- par(no.readonly = TRUE)
 par(opar)
 
 # Plot
-pdf("figure1b.pdf", width = 6, height = 5)
-par(mar = c(0.1, 0.1, 0.1, 0.1) + 0.1)
+pdf("figure1b.pdf", width = 6 * .75, height = 5 * .75)
+par(mar = c(0.1, 0.1, 0.1, 0.1) + 0.8)
 layout(matrix(c(1,2,2,2,
                 3,4,4,4,
                 3,4,4,4,
                 3,4,4,4), nrow = 4, ncol = 4, byrow = TRUE))
 
 cols <- colorspace::diverge_hcl(length(oy))
-tcx <- 1
+tcx <- 0.7
 tcxa <- 1.4
 
 plot.new()
 plot(oy, c(pZ(h(oy))[-ncl], 1), type = "s", axes = FALSE, xlim = c(0, 1),
      ylim = c(0, 1), col = "white", pch = 20, cex = 2)
-mtext(expression(F[Y](y~'|'~x)), 2, line = 3, cex = tcx, adj = 1)
+mtext(expression(F[Y~'|'~X==x](y)), 2, line = 3, cex = tcx, adj = 1)
 axis(1, at = oy, labels = parse(text = paste0("y[" , seq_along(oy), "]")),
      cex.axis = tcxa)
 axis(2, las = 1)
@@ -50,7 +50,7 @@ plot(pZ(h(y)), h(y), type = "l", axes = FALSE, xlim = c(1, 0),
 axis(4, las = 1, labels = -3:2, at = -3:2)
 axis(3)
 mtext(expression(F[Z](h(y~'|'~x))), 3, line = 2, cex = tcx, adj = 0)
-mtext(expression(h(y~'|'~x)), 4, line = 3, cex = tcx, las = 1)
+mtext(expression(h(y~'|'~x)), 4, line = 2.3, cex = tcx, las = 1)
 arrows(0, h(oy)[-ncl], pZ(h(oy))[-ncl], h(oy)[-ncl], length = 0, col = cols,
        lwd = 2)
 lines(pZ(h(y)), h(y), lwd = 1.2, col = rgb(.1, .1, .1, .5))
