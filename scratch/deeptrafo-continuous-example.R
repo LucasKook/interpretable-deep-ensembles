@@ -11,5 +11,5 @@ missp <- function(n = 100) {
 d <- missp(1e3)
 
 m <- BoxCoxNN(y | x ~ 1, data = d, optimizer = optimizer_adam(1e-1, decay = 1e-4))
-(ens <- ensemble(m, epochs = 100, verbose = TRUE, validation_split = 0.1))
+(ens <- ensemble(m, epochs = 1, verbose = TRUE, validation_split = 0.1))
 plot(ens, type = "trafo", newdata = data.frame(x = 0))
