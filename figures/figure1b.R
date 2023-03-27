@@ -3,17 +3,17 @@
 # LK Apr 2022
 
 # Params, FUNs
-oy <- seq(0.1, 0.9, length.out = 7)
+oy <- seq(0.05, 0.99, length.out = 7)
 ncl <- length(oy)
-y <- seq(0 + 1e-2, 1 - 0.15, length.out = res <- 1e3)
+y <- seq(0, 1, length.out = res <- 1e3)
 alp <- pi
 bet <- pi
-pY <- function(y) plogis(1.1 * qlogis(y) - 0.3) # pbeta(y, alp, bet)
+pY <- function(y) plogis(1.2 * qlogis(0.8 * y) + 1) # pbeta(y, alp, bet)
 dY <- function(y) dbeta(y, alp, bet)
 pZ <- function(z) 1 - exp(-exp(z)) # plogis
-dZ <- dlogis
+dZ <- function(z) exp(z - exp(z))
 qY <- function(p) qbeta(p, alp, bet)
-qZ <- qlogis
+qZ <- function(p) log(-log(1 - p))
 
 h <- function(y) qZ(pY(y))
 hp <- function(y) {
@@ -38,8 +38,8 @@ tcx <- 1
 tcxa <- 1.4
 
 plot.new()
-plot(oy, c(pZ(h(oy))[-ncl], 1), type = "s", axes = FALSE, xlim = c(1, 0),
-     ylim = c(0, 1), col = rgb(.1, .1, .1, .5), pch = 20, cex = 2)
+plot(oy, c(pZ(h(oy))[-ncl], 1), type = "s", axes = FALSE, xlim = c(0, 1),
+     ylim = c(0, 1), col = "white", pch = 20, cex = 2)
 mtext(expression(F[Y](y~'|'~x)), 2, line = 3, cex = tcx, adj = 1)
 axis(1, at = oy, labels = parse(text = paste0("y[" , seq_along(oy), "]")),
      cex.axis = tcxa)
@@ -54,7 +54,7 @@ mtext(expression(h(y~'|'~x)), 4, line = 3, cex = tcx, las = 1)
 arrows(0, h(oy)[-ncl], pZ(h(oy))[-ncl], h(oy)[-ncl], length = 0, col = cols,
        lwd = 2)
 lines(pZ(h(y)), h(y), lwd = 1.2, col = rgb(.1, .1, .1, .5))
-plot(oy, c(h(oy)[-ncl], Inf), type = "p", axes = FALSE, xlim = c(1, 0),
+plot(oy, c(h(oy)[-ncl], Inf), type = "p", axes = FALSE, xlim = c(0, 1),
      col = cols, pch = 20, cex = 2, ylim = range(h(oy)) + c(-0.5, 0))
 par(opar)
 dev.off()
