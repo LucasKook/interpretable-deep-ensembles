@@ -143,7 +143,8 @@ tab_raw <- do.call("rbind", lapply(seq_along(lf), function(i) {
 
 dsn <- tools::toTitleCase(rownames(tab_raw))
 dsn[dsn=="Forest_fire"] <- "ForestF"
-dsn[dsn=="Naval_compressor"] <- "Naval"
+dsn[dsn=="Naval_compressor"] <- "NavalC"
+dsn[dsn=="Naval_turbine"] <- "NavalT"
 
 rownames(tab_raw) <- dsn
 tab_raw %>% xtable()
