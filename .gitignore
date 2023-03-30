@@ -41,3 +41,11 @@ vignettes/*.pdf
 *.Rproj
 *.pdf
 
+*.RDS
+*.data
+*.csv
+*.txt
+*.xls
+*.xlsx
+*.dat
+
