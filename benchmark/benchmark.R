@@ -100,7 +100,7 @@ benchmark_per_dataset <- function(name, folds = nfolds){
 
     lltest <- logLik(ens, newdata = dtest, convert_fun = mean)
     test_preds <- do.call("cbind", predict(ens, newdata = dtest, type = "pdf"))
-    lltest$classical <- -mean(log(apply(test_preds, 1, mean) + 1e-16))
+    lltest$classical <- -mean(log(apply(test_preds, 1, mean)))
 
     # Extract NLL from train and test data
     res_fold_i <- suppressMessages(suppressWarnings(
