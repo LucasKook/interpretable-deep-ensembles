@@ -21,12 +21,12 @@ df <- list(Y = dd[, ncol(dd)], X = as.matrix(dd[, -ncol(dd)]))
 
 nn <- \(x) x %>%
   layer_dense(input_shape = ncol(df$X), units = 16L, activation = "relu") %>%
-  layer_dense(input_shape = ncol(df$X), units = 16L, activation = "relu") %>%
-  layer_dense(input_shape = ncol(df$X), units = 8L, activation = "relu") %>%
+  layer_dense(units = 16L, activation = "relu") %>%
+  layer_dense(units = 8L, activation = "relu") %>%
   layer_dense(1L)
 
 ens <- trafoensemble(
-  Y ~ nn(X), data = df, list_of_deep_models = list(nn = nn), epochs = nep,
+  Y ~ 0 + nn(X), data = df, list_of_deep_models = list(nn = nn), epochs = nep,
   callbacks = list(callback_early_stopping(patience = pat, restore_best_weights = TRUE)),
   n_ensemble = nens, seed = sample.int(1e6, nens)
 )
@@ -50,9 +50,9 @@ lines(nd$Y, lwr, type = "l", lwd = 3, lty = 2)
 lines(nd$Y, upr, type = "l", lwd = 3, lty = 2)
 
 nens <- trafoensemble(
-  Y ~ nn(X), data = df, list_of_deep_models = list(nn = nn), epochs = nep,
+  Y ~ 0 + nn(X), data = df, list_of_deep_models = list(nn = nn), epochs = nep,
   callbacks = list(callback_early_stopping(patience = pat, restore_best_weights = TRUE)),
-  n_ensemble = 50, seed = sample.int(1e6, 50)
+  n_ensemble = nens, seed = sample.int(1e6, nens)
 )
 
 cover <- function(x) {
