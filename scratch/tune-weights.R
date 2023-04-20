@@ -59,14 +59,20 @@ weighted_logLik <- function(
 
 }
 
+### Generate train, validation, test data
 train_data <- dgp()
 validation_data <- dgp()
 test_data <- dgp()
 
+### Train ensemble with early stopping (separate validation split)
 ens <- trafoensemble(
   y ~ x, data = train_data, epochs = 1e3, n_ensemble = 10, verbose = TRUE,
   validation_split = 0.1, optimizer = optimizer_adam(learning_rate = 0.1),
   callbacks = list(callback_early_stopping(patience = 50))
 )
+
+### Compute the optimal weights on the validation data (weights = NULL; default)
 tuned <- weighted_logLik(ens, newdata = validation_data)
+
+### Use optimal weights and make test predictions (weights = tuned$weights)
 weighted_logLik(ens, weights = tuned$weights, newdata = test_data)
