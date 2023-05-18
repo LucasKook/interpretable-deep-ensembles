@@ -9,7 +9,7 @@ library("ggpubr")
 
 # Params ------------------------------------------------------------------
 
-bpath <- "scratch/movie-exp-JMLR"
+bpath <- "scratch/movie"
 nr_words <- 10000 # Number of words used to describe the text
 embedding_size <- 99 # Size of text embedding
 repl <- 1 # 3554 movies
@@ -118,78 +118,94 @@ tnr$trafo <- fitens[, 2] + fitens[, 1]
 tnr$dens <- dlogis(tnr$trafo) * fitens[, 4]
 tnr$cdf <- plogis(tnr$trafo)
 
-mlwd <- 1
+mlwd <- 0.8
 kyhigh <- unique(tnr$idx[tnr$response > 8])[6]
 kylow <- unique(tnr$idx[tnr$response < 6])[6]
 
-col_low = "darkblue"
-col_high = "red"
+col2 <- viridis::viridis(2, begin = 0.1, end = 0.9)
+col_low <- col2[1]
+col_high <- col2[2]
 
-col_m_low = "skyblue"
-col_m_high = "orange"
+col_m_low <- "skyblue"
+col_m_high <- "orange"
 
 dhigh <- filter(tnr, idx == kyhigh)
 dlow <- filter(tnr, idx == kylow)
 
 dlow$mempdf <- do.call("cbind", predict(ens, newdata = dlow, type = "pdf"))
 dhigh$mempdf <- do.call("cbind", predict(ens, newdata = dhigh, type = "pdf"))
+dlow$enslin <- rowMeans(dlow$mempdf)
+dhigh$enslin <- rowMeans(dhigh$mempdf)
 
 dlow$memcdf <- do.call("cbind", predict(ens, type = "cdf", newdata = dlow))
 dhigh$memcdf <- do.call("cbind", predict(ens, type = "cdf", newdata = dhigh))
+dlow$enslincdf <- rowMeans(dlow$memcdf)
+dhigh$enslincdf <- rowMeans(dhigh$memcdf)
+
+dhigh$favg <- exp(rowMeans(log(dhigh$mempdf))) # apply(-log(dhigh$mempdf), 1, mean)
+dlow$favg <- exp(rowMeans(log(dlow$mempdf))) # apply(-log(dlow$mempdf), 1, mean)
+
+dhlong <- dhigh %>%
+  ungroup() %>%
+  mutate(mempdf = as_tibble(mempdf)) %>%
+  unnest(mempdf) %>%
+  pivot_longer(c(enslin, dens, V1:V5, favg), names_to = "ensemble", values_to = "dens")
+
+dllong <- dlow %>%
+  ungroup() %>%
+  mutate(mempdf = as_tibble(mempdf)) %>%
+  unnest(mempdf) %>%
+  pivot_longer(c(enslin, dens, V1:V5, favg), names_to = "ensemble", values_to = "dens")
 
 p1 <- ggplot(test, aes(x = log_popularity, y = log_revenue)) +
   geom_point(alpha = 0.3) +
   geom_point(aes(y = response), data = dhigh, color = col_high) +
   geom_point(aes(y = response), data = dlow, color = col_low) +
-  geom_hline(yintercept = dhigh$response[1], color = col_high, linetype = 2) +
-  geom_hline(yintercept = dlow$response[1], color = col_low, linetype = 2) +
-  theme_bw() + labs(x = expression(Popularity~score~(log[10]*'-'*scale)),
-                    y = expression(Movie~revenue~(log[10]*'-'*scale)))
+  geom_hline(yintercept = dhigh$response[1], color = col_high, linetype = 5) +
+  geom_hline(yintercept = dlow$response[1], color = col_low, linetype = 5) +
+  theme_bw() + labs(x = expression(log[10]~popularity~score),
+                    y = expression(log[10]~movie~revenue))
 
-p2 <- ggplot(dhigh, aes(x = log_revenue, y = dens)) +
-  geom_line(aes(y = mempdf[, 1], linetype = "member"), col = col_m_high) +
-  geom_line(aes(y = mempdf[, 2], linetype = "member"), col = col_m_high) +
-  geom_line(aes(y = mempdf[, 3], linetype = "member"), col = col_m_high) +
-  geom_line(aes(y = mempdf[, 4], linetype = "member"), col = col_m_high) +
-  geom_line(aes(y = mempdf[, 5], linetype = "member"), col = col_m_high) +
-  geom_line(lwd = mlwd, aes(color = "high", linetype = "ensemble")) +
-  geom_line(aes(y = mempdf[, 1], linetype = "member"), data = dlow, col = col_m_low) +
-  geom_line(aes(y = mempdf[, 2], linetype = "member"), data = dlow, col = col_m_low) +
-  geom_line(aes(y = mempdf[, 3], linetype = "member"), data = dlow, col = col_m_low) +
-  geom_line(aes(y = mempdf[, 4], linetype = "member"), data = dlow, col = col_m_low) +
-  geom_line(aes(y = mempdf[, 5], linetype = "member"), data = dlow, col = col_m_low) +
-  geom_line(lwd = mlwd, data = dlow, aes(color = "low", linetype = "ensemble")) +
+p2 <- ggplot(dhlong %>% filter(ensemble %in% c("dens", "enslin")), aes(x = log_revenue, y = dens, linetype = ensemble, linewidth = ensemble)) +
+  geom_line(aes(color = "high")) +
+  geom_line(data = dllong %>% filter(ensemble %in% c("dens", "enslin")), aes(color = "low")) +
+  geom_line(data = dhlong %>% filter(ensemble %in% paste0("V", 1:5)), aes(color = "high", linetype = "members")) +
+  geom_line(data = dllong %>% filter(ensemble %in% c("dens", "enslin")), aes(color = "low")) +
+  geom_line(data = dllong %>% filter(ensemble %in% paste0("V", 1:5)), aes(color = "low", linetype = "members")) +
   scale_color_manual(values = c(col_high, col_low)) +
   theme_bw() +
   labs(y = expression(Conditional~density~of~Y~"|"~X==x),
-       x = expression(Movie~revenue~(log[10]*'-'*scale)),
+       x = expression(log[10]~movie~revenue),
        color = "Observation", linetype = element_blank()) +
   geom_vline(xintercept = c(dlow$response[1], dhigh$response[1]),
-             col = c(col_low, col_high), linetype = 2)
+             col = c(col_low, col_high), linetype = 5) +
+  scale_linetype_manual(labels = c("dens" = "TRF", "enslin" = "LIN", "members" = "members"),
+                                   # "V1" = "members"), # , "V2" = "members", "V3" = "members",
+                                   # "V4" = "members", "V5" = "members"),
+                        values = c(1, 2, 3)) + # , rep(3, 5))) +
+  scale_linewidth_manual(values = c(mlwd, mlwd, rep(0.5, 5))) +
+  guides(linewidth = "none", linetype = "none")
 
-dhigh$avg <- apply(-log(dhigh$mempdf), 1, mean)
-dlow$avg <- apply(-log(dlow$mempdf), 1, mean)
-
-p4 <- ggplot(dhigh, aes(x = log_revenue, y = -log(dens))) +
-  geom_line(aes(y = -log(mempdf[, 1])), linetype = 3, col = col_m_high) +
-  geom_line(aes(y = -log(mempdf[, 2])), linetype = 3, col = col_m_high) +
-  geom_line(aes(y = -log(mempdf[, 3])), linetype = 3, col = col_m_high) +
-  geom_line(aes(y = -log(mempdf[, 4])), linetype = 3, col = col_m_high) +
-  geom_line(aes(y = -log(mempdf[, 5])), linetype = 3, col = col_m_high) +
-  # geom_line(aes(y = avg), lwd = 1, col = "gray60", data = dhigh) +
-  geom_line(lwd = mlwd, col = col_high) +
-  geom_line(aes(y = -log(mempdf[, 1])), linetype = 3, data = dlow, col = col_m_low) +
-  geom_line(aes(y = -log(mempdf[, 2])), linetype = 3, data = dlow, col = col_m_low) +
-  geom_line(aes(y = -log(mempdf[, 3])), linetype = 3, data = dlow, col = col_m_low) +
-  geom_line(aes(y = -log(mempdf[, 4])), linetype = 3, data = dlow, col = col_m_low) +
-  geom_line(aes(y = -log(mempdf[, 5])), linetype = 3, data = dlow, col = col_m_low) +
-  # geom_line(aes(y = avg), lwd = 1, data = dlow, col = "gray60") +
-  geom_line(lwd = mlwd, data = dlow, col = col_low) +
+p4 <- ggplot(dhlong %>% filter(ensemble %in% c("dens", "enslin", "favg")),
+             aes(x = log_revenue, y = -log(dens), linetype = ensemble, linewidth = ensemble)) +
+  geom_line(aes(color = "high")) +
+  geom_line(data = dllong %>% filter(ensemble %in% c("dens", "enslin", "favg")), aes(color = "low")) +
+  geom_line(data = dhlong %>% filter(ensemble %in% paste0("V", 1:5)), aes(color = "high", linetype = "members")) +
+  geom_line(data = dllong %>% filter(ensemble %in% c("dens", "enslin", "favg")), aes(color = "low")) +
+  geom_line(data = dllong %>% filter(ensemble %in% paste0("V", 1:5)), aes(color = "low", linetype = "members")) +
+  scale_color_manual(values = c(col_high, col_low)) +
   theme_bw() +
-  labs(y = expression(Negative~log*'-'*likelihood),
-       x = expression(Movie~revenue~(log[10]*'-'*scale))) +
+  labs(y = expression(Negative~log~density~of~Y~"|"~X==x),
+       x = expression(log[10]~movie~revenue),
+       color = "Observation", linetype = element_blank()) +
   geom_vline(xintercept = c(dlow$response[1], dhigh$response[1]),
-             col = c(col_low, col_high), linetype = 2)
+             col = c(col_low, col_high), linetype = 5) +
+  scale_linetype_manual(labels = c("dens" = "TRF", "enslin" = "LIN", "favg" = "AVG", "members" = "members"),
+                                   # "V1" = "members"), # , "V2" = "members", "V3" = "members",
+                                   # "V4" = "members", "V5" = "members"),
+                        values = c(1, 2, 4, 3)) + # , rep(3, 5))) +
+  scale_linewidth_manual(values = c(mlwd, mlwd, mlwd, rep(0.5, 5))) +
+  guides(linewidth = "none") + theme(legend.position = "top")
 
 cl <- apply(
   tr <- do.call("cbind", predict(ens, newdata = test, type = "cdf")), 1, mean
@@ -198,11 +214,12 @@ cl <- apply(
 p3 <- data.frame(cll = qlogis(cl), trr = qlogis(tr)) %>%
   pivot_longer(trr.1:trr.5, names_to = "member", values_to = "trafo") %>%
   ggplot(aes(x = cll, y = trafo, color = member)) +
+  geom_abline(intercept = 0, slope = 1) +
   geom_point(alpha = 0.3) +
   theme_bw() +
   scale_color_brewer(palette = "Dark2") +
   labs(y = expression(Transformation~h[m](y~"|"~x)),
        x = expression(Classical~ensemble~{F^{-1}}[Z]({bar(F)^c}[M](y~"|"~x))))
 
-ggarrange(p1, p2, p3, p4, ncol = 2, nrow = 2, common.legend = TRUE)
+ggarrange(p1, p2, p3, p4, ncol = 2, nrow = 2, common.legend = TRUE, legend.grob = get_legend(p4))
 ggsave(file.path(bpath, "figure4.pdf"), height = 6, width = 7)
