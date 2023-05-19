@@ -4,6 +4,7 @@
 # Dependencies ------------------------------------------------------------
 
 library("deeptrafo")
+library("boot")
 library("tidyverse")
 library("ggpubr")
 
@@ -13,8 +14,19 @@ bpath <- "scratch/movie"
 nr_words <- 10000 # Number of words used to describe the text
 embedding_size <- 99 # Size of text embedding
 repl <- 1 # 3554 movies
+evalbs <- 1e3
 
 do_fit <- FALSE
+
+# FUNs --------------------------------------------------------------------
+
+# get bootstrap CI for a single model:
+bci <- function(mod) {
+  lli <- deeptrafo:::logLik.deeptrafo(mod, newdata = test, convert_fun = identity)
+  bt <- boot(lli, statistic = \(x, d)mean(x[d]), R = 1e4)
+  btci <- boot.ci(bt, conf = 0.95, type = "perc")$percent[1, 4:5]
+  c("nll" = mean(lli), "lwr" = btci[1], "upr" = btci[2])
+}
 
 # Prepare data ------------------------------------------------------------
 
@@ -105,7 +117,7 @@ if (do_fit) {
   ens$ensemble_results <- readRDS(fileName)
 }
 
-logLik(ens, newdata = test, convert_fun = mean, batch_size = 64)
+logLik(ens, newdata = test, convert_fun = mean, batch_size = evalbs)
 tuned <- weighted_logLik(ens, newdata = valid) # val dat for tuning weights
 weighted_logLik(ens, weights = tuned$weights, newdata = test)
 
@@ -223,3 +235,29 @@ p3 <- data.frame(cll = qlogis(cl), trr = qlogis(tr)) %>%
 
 ggarrange(p1, p2, p3, p4, ncol = 2, nrow = 2, common.legend = TRUE, legend.grob = get_legend(p4))
 ggsave(file.path(bpath, "figure4.pdf"), height = 6, width = 7)
+
+# Bootstrap CIs -----------------------------------------------------------
+
+### bootstrap CI for the (unweigthed) TRF-ensemble
+nlls <- logLik(ens, newdata = test, convert_fun = identity)$ensemble
+bt <- boot(nlls, statistic = \(x, d) mean(x[d]), R = 1e4)
+btci <- boot.ci(bt, conf = 0.95, type = "perc")$percent[1, 4:5]
+c("TRF" = mean(nlls), "lwr" = btci[1], "upr" = btci[2])
+
+### bootstrap CI for the weigthed TRF-ensemble
+nlls <- weighted_logLik(ens, weights = tuned$weights, newdata = test, convert_fun = identity)$ensemble
+bt <- boot(nlls, statistic = \(x, d)mean(x[d]), R = 1e4)
+btci <- boot.ci(bt, conf = 0.95, type = "perc")$percent[1, 4:5]
+c("wTRF" = mean(nlls), "lwr" = btci[1], "upr" = btci[2])
+
+### bootstrap CI for classical linear ensemble
+nlls <- -log(rowMeans(ipreds <- do.call("cbind", predict(ens, type = "pdf", newdata = test))))
+bt <- boot(nlls, statistic = \(x, d)mean(x[d]), R = 1e4)
+btci <- boot.ci(bt, conf = 0.95, type = "perc")$percent[1, 4:5]
+c("LIN" = mean(nlls), "lwr" = btci[1], "upr" = btci[2])
+
+### bootstrap NLL-CI for AVG
+nlls <- rowMeans(-log(ipreds))
+bt <- boot(nlls, statistic = \(x, d)mean(x[d]), R = 1e4)
+btci <- boot.ci(bt, conf = 0.95, type = "perc")$percent[1, 4:5]
+c("AVG" = mean(nlls), "lwr" = btci[1], "upr" = btci[2])
