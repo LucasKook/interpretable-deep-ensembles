@@ -233,7 +233,9 @@ p3 <- data.frame(cll = qlogis(cl), trr = qlogis(tr)) %>%
   labs(y = expression(Transformation~h[m](y~"|"~x)),
        x = expression(Classical~ensemble~{F^{-1}}[Z]({bar(F)^c}[M](y~"|"~x))))
 
-ggarrange(p1, p2, p3, p4, ncol = 2, nrow = 2, common.legend = TRUE, legend.grob = get_legend(p4))
+ggarrange(p1 + labs(tag = "A"), p2 + labs(tag = "B"), p3 + labs(tag = "C"),
+          p4 + labs(tag = "D"), ncol = 2, nrow = 2, common.legend = TRUE,
+          legend.grob = get_legend(p4))
 ggsave(file.path(bpath, "figure4.pdf"), height = 6, width = 7)
 
 # Bootstrap CIs -----------------------------------------------------------
